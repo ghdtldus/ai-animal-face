@@ -1,0 +1,28 @@
+# Python 기본
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.swp
+
+# 가상환경
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# 모델 파일
+*.h5
+*.tflite
+*.npz
+*.npy
+
+# 로그
+*.log
+log/
+logs/
