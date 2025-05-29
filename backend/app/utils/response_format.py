@@ -19,7 +19,7 @@ def format_response(prediction: List[dict]) -> dict:
         "cat": "고양이상! 부드럽고 세련된 매력을 가진 스타일이에요 😺",
         "dog": "개상! 충직하고 친근한 인상을 주는 스타일이에요 🐶",
     }
-
+ 
     message = messages.get(animal, f"{animal}상! 단정하고 따뜻한 인상을 주는 스타일이에요 💫")
 
     return {
