@@ -5,12 +5,7 @@ import numpy as np
 import io
 import torch
 import torchvision.transforms as transforms
-
-# 전역 설정값
-RESIZE_LIMIT = 3000            # 너무 큰 이미지는 자동 축소
-DEBUG_MODE = False              # 디버깅 시 얼굴 박스 표시
-MEAN = [0.498, 0.498, 0.498]   # 모델 입력 정규화 mean
-STD = [0.25, 0.25, 0.25]       # 모델 입력 정규화 std
+from app.config import RESIZE_LIMIT, DEBUG_MODE, MEAN, STD
 
 # 전역 얼굴 디텍터 (성능 향상 목적)
 mp_face = mp.solutions.face_detection
