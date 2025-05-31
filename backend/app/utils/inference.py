@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 mean_embeddings = np.load("app/models/mean_embeddings.npy", allow_pickle=True).item()
 
 # TFLite 모델 초기화
-interpreter = tf.lite.Interpreter(model_path="app/models/efficientnet.tflite")
+interpreter = tf.lite.Interpreter(model_path="app/models/exp10b_float32.tflite")
 interpreter.allocate_tensors()
 input_index = interpreter.get_input_details()[0]['index']
 embedding_index = 173  # 임베딩 텐서 인덱스 (모델에 맞게 확인 필요)
