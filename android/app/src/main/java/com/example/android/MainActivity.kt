@@ -9,6 +9,8 @@ import androidx.compose.foundation.Image
 //File 사용을 위해 필요한 import
 import java.io.File
 
+//예외처리를 위해 필요한 import
+import java.io.IOException
 
 import com.example.android.ui.theme.AndroidTheme
 import android.os.Bundle
@@ -100,17 +102,23 @@ fun GalleryImagePicker(modifier: Modifier = Modifier) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         selectedImageUri = uri
-        Log.d("UploadFlow", "이미지 URI 선택됨: $uri")
         uri?.let {
-            val compressedBitmap = ImageUtils.getCompressedBitmap(context, it)
-            if (compressedBitmap == null) return@let
-            val compressedFile = ImageUtils.bitmapToFile(context, compressedBitmap)
-            if (compressedFile == null) return@let
-            uploadImageToServer(compressedFile, "male") { response ->
-                uploadResult = response?.main_result?.animal ?: "업로드 실패"
+            try {
+                val compressedBitmap = ImageUtils.getCompressedBitmap(context, it)
+                if (compressedBitmap == null) throw IOException("이미지를 불러올 수 없습니다.")
+
+                val compressedFile = ImageUtils.bitmapToFile(context, compressedBitmap)
+                uploadImageToServer(compressedFile, "male") { response ->
+                    uploadResult = response?.main_result?.animal ?: "업로드 실패"
+                }
+
+            } catch (e: IOException) {
+                Log.e("UploadFlow", "이미지 처리 실패: ${e.message}")
+                Toast.makeText(context, e.message ?: "이미지 처리 중 오류 발생", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
