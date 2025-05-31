@@ -1,10 +1,14 @@
 package com.example.android
 
-// ✅ 여기서 함수 import만 해주면 됨 (utils. 절대 안 씀)
+// 여기서 함수 import만 해주면 됨 (utils. 절대 안 씀)
 import com.example.android.utils.uriToFile
 import com.example.android.utils.uploadImageToServer
+import com.example.android.utils.ImageUtils
 import com.example.android.data.model.UploadResponse
 import androidx.compose.foundation.Image
+//File 사용을 위해 필요한 import
+import java.io.File
+
 
 import com.example.android.ui.theme.AndroidTheme
 import android.os.Bundle
@@ -27,7 +31,7 @@ import android.widget.Toast
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-
+import androidx.core.content.FileProvider
 
 
 class MainActivity : ComponentActivity() {
@@ -48,11 +52,64 @@ class MainActivity : ComponentActivity() {
 fun GalleryImagePicker(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var uploadResult by remember { mutableStateOf<String?>(null) }
+    val photoFile = File(context.cacheDir, "camera_temp.jpg")
+    // 사진 촬영 결과 저장용 Uri 생성
 
+    val photoUri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        photoFile
+    )
+
+    // 카메라 호출 런처
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            selectedImageUri = photoUri
+            Log.d("CameraFlow", "카메라 촬영 성공: $photoUri")
+
+            // 이미지 압축
+            val compressedBitmap = ImageUtils.getCompressedBitmap(context, photoUri)
+            if (compressedBitmap == null) {
+                Log.e("CameraFlow", "Bitmap 압축 실패")
+                return@rememberLauncherForActivityResult
+            }
+
+            val compressedFile = ImageUtils.bitmapToFile(context, compressedBitmap)
+            if (compressedFile == null) {
+                Log.e("CameraFlow", "Bitmap → File 변환 실패")
+                return@rememberLauncherForActivityResult
+            }
+
+            uploadImageToServer(compressedFile, "male") { response ->
+                if (response != null) {
+                    Log.d("CameraFlow", "서버 응답 성공: ${response.main_result.animal}")
+                    uploadResult = response.main_result.animal
+                } else {
+                    Log.e("CameraFlow", "서버 응답 실패")
+                    uploadResult = "업로드 실패"
+                }
+            }
+        }
+    }
+
+    // 갤러리 호출 런처
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         selectedImageUri = uri
+        Log.d("UploadFlow", "이미지 URI 선택됨: $uri")
+        uri?.let {
+            val compressedBitmap = ImageUtils.getCompressedBitmap(context, it)
+            if (compressedBitmap == null) return@let
+            val compressedFile = ImageUtils.bitmapToFile(context, compressedBitmap)
+            if (compressedFile == null) return@let
+            uploadImageToServer(compressedFile, "male") { response ->
+                uploadResult = response?.main_result?.animal ?: "업로드 실패"
+            }
+        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -70,6 +127,7 @@ fun GalleryImagePicker(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // 갤러리 버튼
         Button(onClick = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
@@ -80,8 +138,18 @@ fun GalleryImagePicker(modifier: Modifier = Modifier) {
             Text("갤러리에서 이미지 선택")
         }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 카메라 버튼
+        Button(onClick = {
+            cameraLauncher.launch(photoUri)
+        }) {
+            Text("카메라로 촬영")
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
+        // 이미지 미리보기
         selectedImageUri?.let { uri ->
             Image(
                 painter = rememberAsyncImagePainter(uri),
@@ -90,19 +158,10 @@ fun GalleryImagePicker(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(300.dp)
             )
+        }
 
-            // ✅ 여기서 utils 없이 uriToFile 직접 호출
-            val file = uriToFile(context, uri)
-
-            if (file != null) {
-                uploadImageToServer(file, "female") { result ->
-                    if (result != null) {
-                        Log.d("UploadResult", "주요 동물상: ${result.main_result.animal}")
-                    } else {
-                        Log.e("UploadResult", "업로드 실패")
-                    }
-                }
-            }
+        uploadResult?.let {
+            Text("예측 결과: $it", modifier = Modifier.padding(top = 16.dp))
         }
     }
 }
