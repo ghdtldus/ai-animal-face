@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 mean_embeddings = np.load("app/models/mean_embeddings.npy", allow_pickle=True).item()
 
 # TFLite 모델 초기화
-interpreter = tf.lite.Interpreter(model_path="app/models/exp10b_float32.tflite")
+interpreter = tf.lite.Interpreter(model_path="app/models/efficientnet.tflite")
 interpreter.allocate_tensors()
 input_index = interpreter.get_input_details()[0]['index']
 embedding_index = 173  # 임베딩 텐서 인덱스 (모델에 맞게 확인 필요)
@@ -117,7 +117,7 @@ def predict_animal_face(img_data, gender: str = None):
         # 6. 최종 결과 리스트 생성 (유사도 * 100하여 점수화)
         results = []
         for animal in filtered_animals:
-            score = round(sims.get(animal, 0) * 100, 1)
+            score = round(sims.get(animal, 0), 4)
             results.append({"animal": animal, "score": score})
 
         return results

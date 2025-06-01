@@ -13,13 +13,13 @@ object ImageUtils {
 
     // 1. Uri → Bitmap 변환 + 리사이즈 + 회전 보정 + 로그
     fun getCompressedBitmap(context: Context, uri: Uri, maxSize: Int = 1024): Bitmap? {
-        // 🔹 1-1. 파일 크기 검사 (예: 5MB 초과 시 오류 발생)
+        // 1-1. 파일 크기 검사 (예: 5MB 초과 시 오류 발생)
         val fileSizeMB = (context.contentResolver.openFileDescriptor(uri, "r")?.statSize ?: 0L) / (1024 * 1024)
         if (fileSizeMB > 5) {
             throw IOException("이미지 용량이 너무 큽니다. 5MB 이하 파일을 업로드해주세요.")
         }
 
-        // 🔹 1-2. 이미지 크기 측정 (압축 여부 판단용)
+        // 1-2. 이미지 크기 측정 (압축 여부 판단용)
         val inputStream = context.contentResolver.openInputStream(uri) ?: return null
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeStream(inputStream, null, options)
@@ -28,16 +28,16 @@ object ImageUtils {
         val scale = calculateInSampleSize(options, maxSize, maxSize)
         val isCompressed = (scale > 1)
 
-        // 🔹 1-3. 실제 Bitmap 디코딩
+        // 1-3. 실제 Bitmap 디코딩
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = scale }
         val imageStream = context.contentResolver.openInputStream(uri) ?: return null
         val bitmap = BitmapFactory.decodeStream(imageStream, null, decodeOptions)
         imageStream.close()
 
-        // 🔹 1-4. 회전 보정 (회전 여부 함께 반환)
+        // 1-4. 회전 보정 (회전 여부 함께 반환)
         val (finalBitmap, isRotated) = bitmap?.let { rotateIfRequired(context, uri, it) } ?: return null
 
-        // 🔹 1-5. 로그 출력
+        // 1-5. 로그 출력
         Log.d("ImageUtils", "압축 여부: $isCompressed, 회전 여부: $isRotated")
         Log.d("ImageUtils", "최종 크기: ${finalBitmap.width}x${finalBitmap.height}")
 
