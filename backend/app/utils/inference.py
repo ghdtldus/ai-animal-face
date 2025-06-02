@@ -57,19 +57,35 @@ def gender_filter(sim_dict, gender):
     return sim_dict
 
 # 유사도 최대값을 max_percent로 제한하고 비율에 맞춰 전체 조정
-def adjust_similarity(similarity_dict, max_percent=0.7):
+# 새로운 커스터마이징 함수
+def adjust_similarity(similarity_dict, max_percent=0.7, boost_delta=0.05):
     """
     similarity_dict: {동물: 유사도} 딕셔너리
     max_percent: 유사도 최대 허용값 (0~1)
-    가장 높은 유사도가 max_percent 초과 시 전체 비율 조정
+    boost_delta: top1과 top2의 유사도가 너무 비슷할 경우 top1을 얼마나 더 강조할지
     """
     if not similarity_dict:
         return similarity_dict
+
+    # 1. 전체 스케일 보정
     max_value = max(similarity_dict.values())
     if max_value > max_percent:
         scale = max_percent / max_value
         similarity_dict = {k: round(v * scale, 4) for k, v in similarity_dict.items()}
+
+    # 2. top1 vs top2 유사도 차이 강조
+    sorted_items = sorted(similarity_dict.items(), key=lambda x: x[1], reverse=True)
+    if len(sorted_items) >= 2:
+        top1_key, top1_val = sorted_items[0]
+        top2_key, top2_val = sorted_items[1]
+        diff = abs(top1_val - top2_val)
+
+        if diff < 0.03:  # 너무 비슷한 경우
+            similarity_dict[top1_key] = min(top1_val + boost_delta, 1.0)
+            similarity_dict[top2_key] = max(top2_val - boost_delta, 0.0)
+
     return similarity_dict
+
 
 # ===============================
 

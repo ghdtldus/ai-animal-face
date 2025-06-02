@@ -29,6 +29,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import com.example.android.utils.ResultStorage
 import com.example.android.data.model.ResultLog
+import com.example.android.data.model.ResultBundle
+import androidx.compose.foundation.Image
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
@@ -84,8 +87,15 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     )
                 )
 
-                val responseJson = Gson().toJson(response)
-                val encodedJson = URLEncoder.encode(responseJson, "UTF-8")
+                val resultBundle = ResultBundle(
+                    uploadResult = response.main_result.animal,
+                    uploadMessage = response.message,
+                    topKResults = response.top_k,
+                    shareCardUrl = response.share_card_url,
+                    uploadedImageUri = compressedFile.absolutePath 
+                )
+
+                val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
                 navController.navigate("result/$encodedJson")
             } else {
                 uploadResult = "업로드 실패"

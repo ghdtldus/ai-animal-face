@@ -13,6 +13,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.android.data.model.AnimalScore
+import androidx.compose.foundation.Image
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.layout.ContentScale
+import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.runtime.remember
+import com.example.android.utils.ImageUtils
+import com.example.android.utils.ImageUtils.uriToAccessibleFile
+import android.net.Uri
+import java.io.File
 
 @Composable
 fun ResultScreen(
@@ -26,32 +38,49 @@ fun ResultScreen(
 ) {
     val context = LocalContext.current
 
+    LaunchedEffect(uploadedImageUri) {
+        uploadedImageUri?.let {
+            Log.d("URI 확인", "uploadedImageUri = $it")
+            when {
+                it.startsWith("content://") -> Log.d("URI 확인", "✅ 갤러리 이미지")
+                it.startsWith("file://") -> Log.d("URI 확인", "✅ 임시 저장 파일")
+                it.startsWith("https://") -> Log.d("URI 확인", "✅ 웹 이미지 URL")
+                else -> Log.d( "URI 확인", "❌ 알 수 없는 URI 형식")
+            }
+        } ?: Log.d("URI 확인", "❌ uploadedImageUri = null")
+    }
+
+    val bitmap = remember(uploadedImageUri) {
+        uploadedImageUri?.let { path ->
+            try {
+                BitmapFactory.decodeFile(path)
+            } catch (e: Exception) {
+                Log.e("🛑", "파일 디코딩 실패: ${e.message}")
+                null
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
         // 이미지 표시
-        uploadedImageUri?.let { uri ->
+        bitmap?.let {
             Spacer(modifier = Modifier.height(16.dp))
-            AsyncImage(
-                model = uri,
+            Image(
+                bitmap = it.asImageBitmap(),
                 contentDescription = "업로드한 이미지",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
             )
         }
 
-        // 예측 결과 출력
         Text(
             text = "나의 동물상은",
             style = MaterialTheme.typography.labelLarge
-        )
-        Text(
-            text = "$uploadResult 상!!",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         // 메시지 출력

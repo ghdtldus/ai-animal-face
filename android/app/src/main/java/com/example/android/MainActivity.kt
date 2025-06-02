@@ -21,6 +21,7 @@ import java.net.URLEncoder
 import com.example.android.ui.screen.SharePreviewScreen
 import com.example.android.ui.screen.RecentResultScreen
 import androidx.navigation.NavHostController
+import com.example.android.data.model.ResultBundle
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,17 +52,17 @@ class MainActivity : ComponentActivity() {
                         arguments = listOf(navArgument("resultJson") { type = NavType.StringType })
                     ) { backStackEntry ->
                         val resultJson = backStackEntry.arguments?.getString("resultJson")
-                        val parsed = parseResultJson(resultJson)
+                        val parsed = parseResultJson(resultJson)  // parsed: ResultBundle
                         ResultScreen(
-                            uploadResult = parsed.main_result.animal,
-                            uploadMessage = parsed.message,
-                            topKResults = parsed.top_k,
-                            shareCardUrl = parsed.share_card_url,
-                            navController = navController,         
+                            uploadResult = parsed.uploadResult,
+                            uploadMessage = parsed.uploadMessage,
+                            topKResults = parsed.topKResults,
+                            shareCardUrl = parsed.shareCardUrl,
+                            uploadedImageUri = parsed.uploadedImageUri,
+                            navController = navController,
                             onRetry = {
                                 navController.popBackStack("home", inclusive = false)
-                            },
-                            uploadedImageUri = parsed.image_uri      
+                            }
                         )
                     }
                     composable(
@@ -81,10 +82,10 @@ class MainActivity : ComponentActivity() {
     }
 
     // JSON 파싱 함수
-    private fun parseResultJson(json: String?): UploadResponse {
+    private fun parseResultJson(json: String?): ResultBundle {
         return Gson().fromJson(
             URLDecoder.decode(json, StandardCharsets.UTF_8.name()),
-            UploadResponse::class.java
+            ResultBundle::class.java
         )
     }
 }

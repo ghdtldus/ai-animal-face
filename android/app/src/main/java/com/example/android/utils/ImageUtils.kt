@@ -95,4 +95,18 @@ object ImageUtils {
         }
         return file
     }
+
+    fun uriToAccessibleFile(context: Context, uri: Uri): File? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val tempFile = File.createTempFile("upload_preview", ".jpg", context.cacheDir)
+            tempFile.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+            tempFile
+        } catch (e: Exception) {
+            Log.e("ImageUtils", "File copy 실패: ${e.message}")
+            null
+        }
+    }
 }
