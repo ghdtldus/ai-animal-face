@@ -15,10 +15,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.sp
+import android.util.Log
 
 @Composable
 fun SharePreviewScreen(imageUrl: String, navController: NavController) {
     val context = LocalContext.current
+
+    LaunchedEffect(imageUrl) {
+        Log.d("SharePreview", "로딩할 이미지 URL: $imageUrl")
+    }   
+    if (imageUrl.isBlank() || imageUrl.endsWith("/share/")) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("잘못된 공유 링크입니다.")
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { navController.navigate("home") }) {
+                Text("홈으로 이동")
+            }
+        }
+        return
+    } 
+
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
             .data(imageUrl)
@@ -76,7 +96,7 @@ fun SharePreviewScreen(imageUrl: String, navController: NavController) {
         Button(
             onClick = {
                 navController.navigate("home") {
-                    popUpTo("share_preview/{imageUrl}") { inclusive = true }
+                    popUpTo("home") { inclusive = false }
                 }
             },
             modifier = Modifier
