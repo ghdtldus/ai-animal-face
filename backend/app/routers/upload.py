@@ -6,6 +6,7 @@ from app.utils.image_preprocess import preprocess_image
 from app.utils.inference import predict_animal_face
 from app.utils.response_format import format_response
 import logging
+from pprint import pprint
 
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")
@@ -34,6 +35,8 @@ async def upload_image(
         img_bytes = await file.read()
         preprocessed = preprocess_image(img_bytes)
         prediction = predict_animal_face(preprocessed, gender)
+        print("↓↓↓ 예측 결과 ↓↓↓")
+        pprint(prediction)
         return format_response(prediction)
 
     except ValueError as ve:

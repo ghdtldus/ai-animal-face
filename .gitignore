@@ -21,8 +21,17 @@ venv/
 *.tflite
 *.npz
 *.npy
+checkpoints/
+models/
 
 # 로그
 *.log
 log/
 logs/
+
+# 이미지
+*.jpg
+*.jpeg
+*.png
+uploads/
+dataset/dataset_MultiLabel_cropped/
