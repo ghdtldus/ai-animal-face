@@ -43,6 +43,13 @@
             </intent-filter>
         </activity>
 
+        <!-- ResultActivity 등록 -->
+        <activity
+            android:name=".ui.component.ResultActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Android"
+            android:label="결과 보기" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
