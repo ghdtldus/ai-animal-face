@@ -9,6 +9,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.File
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 fun uploadImageToServer(
     imageFile: File,
@@ -17,7 +18,7 @@ fun uploadImageToServer(
 ) {
     val requestFile = imageFile.asRequestBody("image/jpg".toMediaTypeOrNull())
     val body = MultipartBody.Part.createFormData("file", imageFile.name, requestFile)
-    val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
+    val genderPart = gender.toRequestBody("text/plain".toMediaTypeOrNull())
 
     CoroutineScope(Dispatchers.IO).launch {
         try {

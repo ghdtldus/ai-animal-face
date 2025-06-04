@@ -2,11 +2,11 @@ from typing import List
 from PIL import Image, ImageDraw, ImageFont
 import os
 import uuid
+from pathlib import Path
 
 # 공 유 카드 이미지 저장 디렉토리 및 URL
-IMAGE_SAVE_DIR = "static/share_cards"
-BASE_URL = "https://test/static/share_cards"  # 실제 도메인으로 변경할 것
-
+IMAGE_SAVE_DIR = r"C:\Projects\ai-animal-face\firebase-hosting\public\static\cards"
+BASE_URL = "https://animalfaceapp-e67a4.web.app/static/cards"
 # 메시지 템플릿
 MESSAGES = {
     "wolf": "늑대상! 강인하고 자유로운 영혼의 스타일이에요 🐺",
@@ -56,16 +56,16 @@ def generate_share_card(animal: str) -> str:
     return f"{BASE_URL}/{filename}"
 
 # 최종 응답 포맷 함수
-def format_response(prediction: List[dict]) -> dict:
+def format_response(prediction: List[dict], image_id: str) -> dict:
     main = prediction[0]
     animal = main["animal"]
 
     message = MESSAGES.get(animal, f"{animal}상! 단정하고 따뜻한 인상을 주는 스타일이에요 💫")
-    share_card_url = generate_share_card(animal)
 
     return {
         "main_result": main,
         "top_k": prediction[:3],
         "message": message,
-        "share_card_url": share_card_url
+        "share_card_url": f"https://animalfaceapp-e67a4.web.app/static/cards/{image_id}.png",
+        "share_page_url": f"https://animalfaceapp-e67a4.web.app/share/{image_id}.html"
     }
