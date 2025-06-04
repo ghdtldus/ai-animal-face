@@ -83,4 +83,4 @@ def preprocess_image(image_bytes: bytes) -> torch.Tensor:
 
     except Exception as e:
         # 최종 예외 처리
-        raise ValueError(f"전처리 중 오류 발생: {str(e)}")
+        raise ValueError(f"{str(e)}")
