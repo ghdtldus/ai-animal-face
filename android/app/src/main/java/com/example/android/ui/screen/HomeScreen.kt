@@ -69,41 +69,44 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             return
         }
         isLoading = true
-        uploadImageToServer(compressedFile, selectedGender!!) { response ->
-            isLoading = false
-            if (response != null) {
-                uploadResult = response.main_result.animal
-                uploadMessage = response.message
-                topKResults = response.top_k
+        uploadImageToServer(
+            compressedFile,
+            selectedGender!!,
+            onResult = { response ->
+                isLoading = false
+                if (response != null) {
+                    uploadResult = response.main_result.animal
+                    uploadMessage = response.message
+                    topKResults = response.top_k
 
-                val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                val main = response.main_result
-                ResultStorage.saveResult(
-                    context,
-                    ResultLog(
-                        animal = main.animal,
-                        score = main.score,
-                        date = today
+                    val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    val main = response.main_result
+                    ResultStorage.saveResult(
+                        context,
+                        ResultLog(
+                            animal = main.animal,
+                            score = main.score,
+                            date = today
+                        )
                     )
-                )
 
-                val resultBundle = ResultBundle(
-                    uploadResult = response.main_result.animal,
-                    uploadMessage = response.message,
-                    topKResults = response.top_k,
-                    shareCardUrl = response.share_card_url,
-                    uploadedImageUri = compressedFile.absolutePath 
-                )
+                    val resultBundle = ResultBundle(
+                        uploadResult = response.main_result.animal,
+                        uploadMessage = response.message,
+                        topKResults = response.top_k,
+                        shareCardUrl = response.share_card_url,
+                        uploadedImageUri = compressedFile.absolutePath
+                    )
 
-                val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
-                navController.navigate("result/$encodedJson")
-            } else {
-                uploadResult = "업로드 실패"
-                uploadMessage = null
-                topKResults = emptyList()
-                Toast.makeText(context, "서버 업로드 실패", Toast.LENGTH_SHORT).show()
+                    val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
+                    navController.navigate("result/$encodedJson")
+                }
+            },
+            onError = { errorMessage ->
+                isLoading = false
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
             }
-        }
+        )
     }
 
     // 카메라 런처

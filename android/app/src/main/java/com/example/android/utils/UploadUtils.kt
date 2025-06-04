@@ -9,11 +9,13 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.File
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 
 fun uploadImageToServer(
     imageFile: File,
     gender: String,
-    onResult: (UploadResponse?) -> Unit
+    onResult: (UploadResponse?) -> Unit,
+    onError: (String) -> Unit
 ) {
     val requestFile = imageFile.asRequestBody("image/jpg".toMediaTypeOrNull())
     val body = MultipartBody.Part.createFormData("file", imageFile.name, requestFile)
@@ -26,14 +28,26 @@ fun uploadImageToServer(
                 if (response.isSuccessful) {
                     onResult(response.body())
                 } else {
-                    Log.e("Upload", "Error: ${response.code()}")
-                    onResult(null)
+                    val errorBodyStr = response.errorBody()?.string()
+                    val message = try {
+                        // 서버가 "detail" 또는 "message" 키로 에러를 보낸다면 모두 대응
+                        val json = JSONObject(errorBodyStr ?: "")
+                        when {
+                            json.has("detail") -> json.getString("detail")
+                            json.has("message") -> json.getString("message")
+                            else -> "서버 오류가 발생했습니다."
+                        }
+                    } catch (e: Exception) {
+                        "서버 오류가 발생했습니다."
+                    }
+                    Log.e("Upload", "Error: $message")
+                    onError(message)
                 }
             }
         } catch (e: Exception) {
             Log.e("Upload", "Exception: ${e.message}")
             withContext(Dispatchers.Main) {
-                onResult(null)
+                onError("서버 연결에 실패했습니다.")
             }
         }
     }
