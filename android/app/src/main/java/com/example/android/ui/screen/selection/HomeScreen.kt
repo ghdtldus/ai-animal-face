@@ -7,16 +7,19 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.android.R
 import com.example.android.utils.ImageUtils
 import com.example.android.utils.ResultStorage
 import com.example.android.utils.uploadImageToServer
@@ -155,7 +158,8 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -163,30 +167,48 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             }
         }
 
-        Text("성별을 선택해주세요:", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.imglogo),
+            contentDescription = "앱 로고",
+            modifier = Modifier
+                .size(150.dp)
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.lbselect_gender),
+            contentDescription = "성별을 선택해주세요",
+            modifier = Modifier
+                .height(50.dp)
+                .width(300.dp)
+        )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = { selectedGender = "male" },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedGender == "male") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                ),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("남성")
-            }
-            Button(
-                onClick = { selectedGender = "female" },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedGender == "female") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                ),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("여성")
-            }
+            val maleSelected = selectedGender == "male"
+            Image(
+                painter = painterResource(id = if (maleSelected) R.drawable.male_selected else R.drawable.male_unselected),
+                contentDescription = "남성 선택",
+                modifier = Modifier
+                    .height(70.dp)
+                    .width(130.dp)
+                    .clickable { selectedGender = "male" }
+            )
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            val femaleSelected = selectedGender == "female"
+            Image(
+                painter = painterResource(id = if (femaleSelected) R.drawable.female_selected else R.drawable.female_unselected),
+                contentDescription = "여성 선택",
+                modifier = Modifier
+                    .height(70.dp)
+                    .width(130.dp)
+                    .clickable { selectedGender = "female" }
+            )
         }
 
         Button(
