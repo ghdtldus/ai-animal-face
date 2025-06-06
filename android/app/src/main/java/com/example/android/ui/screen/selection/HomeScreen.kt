@@ -18,24 +18,24 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.android.utils.ImageUtils
+import com.example.android.utils.ResultStorage
 import com.example.android.utils.uploadImageToServer
 import com.example.android.data.model.AnimalScore
+import com.example.android.data.model.ResultBundle
+import com.example.android.data.model.ResultLog
 import com.google.gson.Gson
 import java.io.File
 import java.io.IOException
 import java.net.URLEncoder
-import java.util.UUID
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import com.example.android.utils.ResultStorage
-import com.example.android.data.model.ResultLog
-import com.example.android.data.model.ResultBundle
+import java.util.UUID
 
 @Composable
 fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     val context = LocalContext.current
 
-    // remember 상태들
+    // 상태 변수들
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var uploadResult by remember { mutableStateOf<String?>(null) }
     var uploadMessage by remember { mutableStateOf<String?>(null) }
@@ -43,7 +43,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     var isLoading by remember { mutableStateOf(false) }
     var selectedGender by remember { mutableStateOf<String?>(null) }
 
-    // 상태 초기화
     LaunchedEffect(Unit) {
         selectedImageUri = null
         uploadResult = null
@@ -107,7 +106,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         )
     }
 
-    // 카메라 런처
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -123,7 +121,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
     }
 
-    // 갤러리 런처
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -157,9 +154,9 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(40.dp))
@@ -167,12 +164,17 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
 
         Text("성별을 선택해주세요:", style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Button(
                 onClick = { selectedGender = "male" },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (selectedGender == "male") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                )
+                ),
+                modifier = Modifier.weight(1f)
             ) {
                 Text("남성")
             }
@@ -180,13 +182,12 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                 onClick = { selectedGender = "female" },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (selectedGender == "female") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                )
+                ),
+                modifier = Modifier.weight(1f)
             ) {
                 Text("여성")
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
@@ -196,12 +197,11 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     imageLauncher.launch("image/*")
                 }
             },
-            enabled = !isLoading
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("갤러리에서 이미지 선택")
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
 
         Button(
             onClick = {
@@ -211,12 +211,11 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     cameraLauncher.launch(photoUri)
                 }
             },
-            enabled = !isLoading
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("카메라로 촬영")
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
 
         selectedImageUri?.let { uri ->
             Image(
