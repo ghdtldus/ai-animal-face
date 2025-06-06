@@ -1,4 +1,4 @@
-package com.example.android.ui.screen
+package com.example.android.ui.screen.selection
 
 import android.Manifest
 import android.net.Uri
@@ -7,37 +7,38 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.android.R
 import com.example.android.utils.ImageUtils
+import com.example.android.utils.ResultStorage
 import com.example.android.utils.uploadImageToServer
 import com.example.android.data.model.AnimalScore
+import com.example.android.data.model.ResultBundle
+import com.example.android.data.model.ResultLog
 import com.google.gson.Gson
 import java.io.File
 import java.io.IOException
 import java.net.URLEncoder
-import java.util.UUID
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import com.example.android.utils.ResultStorage
-import com.example.android.data.model.ResultLog
-import com.example.android.data.model.ResultBundle
-import androidx.compose.foundation.Image
-import coil.compose.rememberAsyncImagePainter
+import java.util.UUID
 
 @Composable
 fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     val context = LocalContext.current
 
-    // remember 상태들
+    // 상태 변수들
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var uploadResult by remember { mutableStateOf<String?>(null) }
     var uploadMessage by remember { mutableStateOf<String?>(null) }
@@ -45,7 +46,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     var isLoading by remember { mutableStateOf(false) }
     var selectedGender by remember { mutableStateOf<String?>(null) }
 
-    // 상태 초기화
     LaunchedEffect(Unit) {
         selectedImageUri = null
         uploadResult = null
@@ -109,7 +109,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         )
     }
 
-    // 카메라 런처
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -125,7 +124,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
     }
 
-    // 갤러리 런처
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -159,79 +157,113 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(40.dp))
             }
         }
 
-        Text("성별을 선택해주세요:", style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = { selectedGender = "male" },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedGender == "male") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text("남성")
-            }
-            Button(
-                onClick = { selectedGender = "female" },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedGender == "female") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text("여성")
-            }
-        }
+        Spacer(modifier = Modifier.height(10.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            painter = painterResource(id = R.drawable.imglogo),
+            contentDescription = "앱 로고",
+            modifier = Modifier
+                .size(150.dp)
+        )
 
-        Button(
-            onClick = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-                } else {
-                    imageLauncher.launch("image/*")
-                }
-            },
-            enabled = !isLoading
+        Image(
+            painter = painterResource(id = R.drawable.lbselect_gender),
+            contentDescription = "성별을 선택해주세요",
+            modifier = Modifier
+                .height(50.dp)
+                .width(300.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            Text("갤러리에서 이미지 선택")
+            val maleSelected = selectedGender == "male"
+            Image(
+                painter = painterResource(id = if (maleSelected) R.drawable.male_selected else R.drawable.male_unselected),
+                contentDescription = "남성 선택",
+                modifier = Modifier
+                    .height(70.dp)
+                    .width(130.dp)
+                    .clickable { selectedGender = "male" }
+            )
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            val femaleSelected = selectedGender == "female"
+            Image(
+                painter = painterResource(id = if (femaleSelected) R.drawable.female_selected else R.drawable.female_unselected),
+                contentDescription = "여성 선택",
+                modifier = Modifier
+                    .height(70.dp)
+                    .width(130.dp)
+                    .clickable { selectedGender = "female" }
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Button(
-            onClick = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                } else {
-                    cameraLauncher.launch(photoUri)
-                }
-            },
-            enabled = !isLoading
+        Image(
+            painter = painterResource(id = R.drawable.lbselect_picture),
+            contentDescription = "사진을 선택해주세요",
+            modifier = Modifier
+                .height(50.dp)
+                .width(300.dp)
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("카메라로 촬영")
-        }
-
-        Button(onClick = { navController.navigate("recent_results") }) {
-            Text("최근 판별 결과 확인하러 가기")
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        selectedImageUri?.let { uri ->
             Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = "선택된 이미지",
+                painter = painterResource(id = R.drawable.btgallery),
+                contentDescription = "갤러리에서 이미지 선택",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
+                    .size(width = 300.dp, height = 60.dp)
+                    .clickable(enabled = !isLoading) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                        } else {
+                            imageLauncher.launch("image/*")
+                        }
+                    }
+            )
+
+            Image(
+                painter = painterResource(id = R.drawable.btcamera),
+                contentDescription = "카메라 열기",
+                modifier = Modifier
+                    .size(width = 300.dp, height = 60.dp)
+                    .clickable(enabled = !isLoading) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        } else {
+                            cameraLauncher.launch(photoUri)
+                        }
+                    }
             )
         }
+
+
+//        selectedImageUri?.let { uri ->
+//            Image(
+//                painter = rememberAsyncImagePainter(uri),
+//                contentDescription = "선택된 이미지",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(300.dp)
+//            )
+//        }
     }
 }
