@@ -45,7 +45,7 @@ fun HomeMain(navController: NavController) {
             contentDescription = "시작하기 버튼",
             modifier = Modifier
                 .size(150.dp)
-                .clickable { navController.navigate("Start") }
+                .clickable { navController.navigate("home_screen") }
         )
 
         Spacer(modifier = Modifier.height(16.dp))

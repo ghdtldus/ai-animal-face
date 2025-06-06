@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
                             val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
                             SharePreviewScreen(imageUrl = decodedUrl, navController = navController)
                         }
-                        composable("Start") {
+                        composable("home_screen") {
                             HomeScreen(navController = navController)
                         }
                         composable("recent_results") {

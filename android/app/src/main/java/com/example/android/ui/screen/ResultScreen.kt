@@ -116,8 +116,8 @@ fun ResultScreen(
         ) {
             Button(
                 onClick = {
-                    navController.popBackStack("home", inclusive = true)
-                    navController.navigate("home")
+                    navController.popBackStack("home_screen", inclusive = true)
+                    navController.navigate("home_screen")
                 },
                 modifier = Modifier.weight(1f)
             ) {
