@@ -211,42 +211,59 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             )
         }
 
-        Button(
-            onClick = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-                } else {
-                    imageLauncher.launch("image/*")
-                }
-            },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("갤러리에서 이미지 선택")
-        }
+        Spacer(modifier = Modifier.height(10.dp))
 
-        Button(
-            onClick = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                } else {
-                    cameraLauncher.launch(photoUri)
-                }
-            },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("카메라로 촬영")
-        }
+        Image(
+            painter = painterResource(id = R.drawable.lbselect_picture),
+            contentDescription = "사진을 선택해주세요",
+            modifier = Modifier
+                .height(50.dp)
+                .width(300.dp)
+        )
 
-        selectedImageUri?.let { uri ->
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = "선택된 이미지",
+                painter = painterResource(id = R.drawable.btgallery),
+                contentDescription = "갤러리에서 이미지 선택",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
+                    .size(width = 300.dp, height = 60.dp)
+                    .clickable(enabled = !isLoading) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                        } else {
+                            imageLauncher.launch("image/*")
+                        }
+                    }
+            )
+
+            Image(
+                painter = painterResource(id = R.drawable.btcamera),
+                contentDescription = "카메라 열기",
+                modifier = Modifier
+                    .size(width = 300.dp, height = 60.dp)
+                    .clickable(enabled = !isLoading) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        } else {
+                            cameraLauncher.launch(photoUri)
+                        }
+                    }
             )
         }
+
+
+//        selectedImageUri?.let { uri ->
+//            Image(
+//                painter = rememberAsyncImagePainter(uri),
+//                contentDescription = "선택된 이미지",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(300.dp)
+//            )
+//        }
     }
 }
