@@ -1,4 +1,4 @@
-package com.example.android.ui.screen
+package com.example.android.ui.screen.selection
 
 import android.Manifest
 import android.net.Uri
@@ -30,8 +30,6 @@ import java.time.format.DateTimeFormatter
 import com.example.android.utils.ResultStorage
 import com.example.android.data.model.ResultLog
 import com.example.android.data.model.ResultBundle
-import androidx.compose.foundation.Image
-import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
@@ -216,10 +214,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             enabled = !isLoading
         ) {
             Text("카메라로 촬영")
-        }
-
-        Button(onClick = { navController.navigate("recent_results") }) {
-            Text("최근 판별 결과 확인하러 가기")
         }
 
         Spacer(modifier = Modifier.height(20.dp))
