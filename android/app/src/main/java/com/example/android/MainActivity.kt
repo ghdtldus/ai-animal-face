@@ -1,27 +1,21 @@
 package com.example.android
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import com.example.android.ui.theme.AndroidTheme
-import com.example.android.ui.screen.HomeScreen
-import com.example.android.ui.screen.ResultScreen
-import com.example.android.data.model.UploadResponse
+import com.example.android.ui.screen.*
+import com.example.android.data.model.*
 import com.google.gson.Gson
 import java.net.URLDecoder
+import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import java.net.URLEncoder
-import com.example.android.ui.screen.SharePreviewScreen
-import com.example.android.ui.screen.RecentResultScreen
-import androidx.navigation.NavHostController
-import com.example.android.data.model.ResultBundle
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,18 +23,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val navController: NavHostController = rememberNavController()
-            val startDestination = if (
-                intent?.data?.host == "sandwich.app" &&
-                intent?.data?.pathSegments?.getOrNull(0) == "share"
-            ) {
-                val imageId = intent.data?.lastPathSegment ?: ""
-                "share_preview/${URLEncoder.encode("https://sandwich.app/share/$imageId", "UTF-8")}"
+            val navController = rememberNavController()
+
+            // 딥링크 경로 파싱
+            val pathSegments = intent?.data?.pathSegments
+            val imageId = intent?.data?.pathSegments?.let { segments ->
+                if (segments.size >= 2 && segments[0] == "share") {
+                    segments[1].removeSuffix(".html")
+                } else ""
+            } ?: ""
+            Log.d("DeepLink", "🔥 딥링크 imageId: $imageId")
+
+            val imageUrl = "https://animalfaceapp-e67a4.web.app/share/$imageId.png"
+            Log.d("DeepLink", "🔥 이동할 URL: $imageUrl")
+
+            val startDestination = if (imageId.isNotEmpty()) {
+                "share_preview/${URLEncoder.encode(imageUrl, "UTF-8")}"
             } else {
                 "home"
             }
-
-
 
             AndroidTheme {
                 NavHost(navController = navController, startDestination = startDestination) {
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
                         arguments = listOf(navArgument("resultJson") { type = NavType.StringType })
                     ) { backStackEntry ->
                         val resultJson = backStackEntry.arguments?.getString("resultJson")
-                        val parsed = parseResultJson(resultJson)  // parsed: ResultBundle
+                        val parsed = parseResultJson(resultJson)
                         ResultScreen(
                             uploadResult = parsed.uploadResult,
                             uploadMessage = parsed.uploadMessage,
@@ -81,7 +82,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // JSON 파싱 함수
     private fun parseResultJson(json: String?): ResultBundle {
         return Gson().fromJson(
             URLDecoder.decode(json, StandardCharsets.UTF_8.name()),

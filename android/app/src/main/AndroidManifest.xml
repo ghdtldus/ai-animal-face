@@ -38,10 +38,17 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="sandwich.app"
+                    android:host="animalfaceapp-e67a4.web.app"
                     android:pathPrefix="/share" />
             </intent-filter>
         </activity>
+
+        <!-- ResultActivity 등록 -->
+        <activity
+            android:name=".ui.component.ResultActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Android"
+            android:label="결과 보기" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

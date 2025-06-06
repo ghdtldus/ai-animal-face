@@ -71,7 +71,7 @@ fun ResultScreen(
             Image(
                 bitmap = it.asImageBitmap(),
                 contentDescription = "업로드한 이미지",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)

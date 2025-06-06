@@ -3,6 +3,7 @@ from app.routers.upload import router as upload_router
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 app = FastAPI()  
 app.include_router(upload_router)
@@ -18,8 +19,8 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "Animal Face Classifier API running."}
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_dir = os.path.join(os.path.dirname(__file__), "../../firebase-hosting/public/static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 @app.get("/share/{image_id}", response_class=HTMLResponse)
 def show_share_preview(image_id: str):
     image_url = f"https://sandwich.app/static/cards/{image_id}.png"
