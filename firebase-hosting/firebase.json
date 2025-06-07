@@ -7,6 +7,17 @@
         "source": "/share/**",
         "destination": "/share/index.html"
       }
+    ],
+    "headers": [
+      {
+        "source": "/static/cards/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=3600"
+          }
+        ]
+      }
     ]
   }
 }

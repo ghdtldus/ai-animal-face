@@ -32,6 +32,7 @@ import com.example.android.data.model.ResultLog
 import com.example.android.data.model.ResultBundle
 import androidx.compose.foundation.Image
 import coil.compose.rememberAsyncImagePainter
+import android.util.Log
 
 @Composable
 fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
@@ -72,6 +73,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         uploadImageToServer(compressedFile, selectedGender!!) { response ->
             isLoading = false
             if (response != null) {
+                Log.d("SharePageURL", "받은 URL: ${response.share_page_url}")
                 uploadResult = response.main_result.animal
                 uploadMessage = response.message
                 topKResults = response.top_k
@@ -86,15 +88,16 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                         date = today
                     )
                 )
-
+                Log.d("ResultBundle", "sharePageUrl 전달됨: ${response.share_page_url}")
                 val resultBundle = ResultBundle(
                     uploadResult = response.main_result.animal,
                     uploadMessage = response.message,
                     topKResults = response.top_k,
                     shareCardUrl = response.share_card_url,
-                    uploadedImageUri = compressedFile.absolutePath 
+                    uploadedImageUri = compressedFile.absolutePath,
+                    sharePageUrl = response.share_page_url
                 )
-
+                Log.d("JSON 인코딩", "최종 JSON 직전: ${Gson().toJson(resultBundle)}")
                 val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
                 navController.navigate("result/$encodedJson")
             } else {

@@ -31,7 +31,7 @@ fun ResultScreen(
     uploadResult: String,
     uploadMessage: String?,
     topKResults: List<AnimalScore>,
-    shareCardUrl: String?,
+    sharePageUrl: String?,
     navController: NavHostController,
     onRetry: () -> Unit,
     uploadedImageUri: String?
@@ -126,7 +126,7 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            shareCardUrl?.let { url ->
+            sharePageUrl?.let { url ->
                 Button(
                     onClick = {
                         val shareIntent = Intent().apply {

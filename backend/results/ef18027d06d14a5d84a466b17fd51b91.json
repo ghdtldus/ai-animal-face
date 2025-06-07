@@ -1,0 +1,18 @@
+{
+  "main_result": {
+    "animal": "squirrel",
+    "score": 0.75
+  },
+  "top_k": [
+    {
+      "animal": "squirrel",
+      "score": 0.75
+    },
+    {
+      "animal": "bear",
+      "score": 0.6999
+    }
+  ],
+  "message": "squirrel상! 당신은 squirrel상의 매력을 가지고 있어요!",
+  "image_url": "https://animalfaceapp-e67a4.web.app/static/cards/ef18027d06d14a5d84a466b17fd51b91.png"
+}

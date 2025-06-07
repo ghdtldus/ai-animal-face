@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
                             uploadResult = parsed.uploadResult,
                             uploadMessage = parsed.uploadMessage,
                             topKResults = parsed.topKResults,
-                            shareCardUrl = parsed.shareCardUrl,
+                            sharePageUrl = parsed.sharePageUrl,
                             uploadedImageUri = parsed.uploadedImageUri,
                             navController = navController,
                             onRetry = {
