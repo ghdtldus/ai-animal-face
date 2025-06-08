@@ -3,17 +3,19 @@ package com.example.android
 import android.os.Bundle
 import android.os.Build
 import android.Manifest
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
-import androidx.compose.material3.*
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.example.android.ui.theme.AndroidTheme
 import com.example.android.ui.screen.*
 import com.example.android.data.model.*
+import com.example.android.ui.theme.AndroidTheme
+import com.example.android.ui.screen.main.HomeMain
+import com.example.android.ui.screen.selection.HomeScreen
 import com.google.gson.Gson
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -36,12 +38,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            val startDestination = "home" // 항상 홈부터 시작
+            val startDestination = "home"
 
             AndroidTheme {
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable("home") {
-                        HomeScreen(navController = navController)
+                        HomeMain(navController = navController)
                     }
                     composable(
                         "result/{resultJson}",
@@ -69,6 +71,9 @@ class MainActivity : ComponentActivity() {
                         val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
                         val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
                         SharePreviewScreen(imageUrl = decodedUrl, navController = navController)
+                    }
+                    composable("home_screen") {
+                        HomeScreen(navController = navController)
                     }
                     composable("recent_results") {
                         RecentResultScreen(navController = navController)

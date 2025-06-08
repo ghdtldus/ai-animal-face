@@ -75,6 +75,18 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.androidx.navigation.common.android)
+    implementation(libs.androidx.junit.ktx)
+    implementation(libs.androidx.monitor)
+    implementation(libs.core.ktx)
+    implementation(libs.litert.support.api)
+
+    // 이미지 전처리
+    implementation(libs.play.services.mlkit.face.detection)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+
+
 
     // 테스트
     testImplementation(libs.junit)
@@ -86,4 +98,8 @@ dependencies {
     // 디버그 전용
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // 모델 추론을 위해 TFLite 라이브러리 추가
+    implementation("org.tensorflow:tensorflow-lite:2.13.0")
+
 }

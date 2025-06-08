@@ -100,7 +100,7 @@ fun ResultScreen(
             Image(
                 bitmap = it.asImageBitmap(),
                 contentDescription = "업로드한 이미지",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
@@ -145,8 +145,8 @@ fun ResultScreen(
         ) {
             Button(
                 onClick = {
-                    navController.popBackStack("home", inclusive = true)
-                    navController.navigate("home")
+                    navController.popBackStack("home_screen", inclusive = true)
+                    navController.navigate("home_screen")
                 },
                 modifier = Modifier.weight(1f)
             ) {
