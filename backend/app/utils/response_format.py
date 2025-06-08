@@ -90,3 +90,83 @@ def format_response(prediction: List[dict], image_id: str) -> dict:
         "share_card_url": f"{BASE_URL}/{image_id}.png",
         "share_page_url": f"https://api.animalfaceapp.com/share/{image_id}"
     }
+
+
+def generate_share_card_for_app(animal: str, image_id: str, top_k: List[dict], save_dir: str) -> str:
+    width, height = 600, 400
+    img = Image.new("RGB", (width, height), color=(230, 250, 250))  # 앱 전용 연하늘 배경
+    draw = ImageDraw.Draw(img)
+
+    font_path = os.path.join(BASE_DIR, "..", "..", "assets", "fonts", "NanumGothic-Bold.ttf")
+    try:
+        title_font = ImageFont.truetype(font_path, 28)
+        result_font = ImageFont.truetype(font_path, 36)
+        bar_font = ImageFont.truetype(font_path, 18)
+    except Exception:
+        title_font = result_font = bar_font = ImageFont.load_default()
+
+    draw.text((width/2, 40), "✨내 동물상 분석 결과✨", font=title_font, fill="black", anchor="mm")
+    draw.text((width/2, 90), f"결과는 {animal}상!", font=result_font, fill="black", anchor="mm")
+
+    # bar 시각화 
+    start_y = 200
+    bar_width = 300
+    bar_height = 20
+    gap = 50
+
+    for i, item in enumerate(top_k[:2]):
+        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        score = item['score']
+        bar_x = (width - bar_width) // 2
+        bar_y = start_y + i * gap
+
+        draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
+        draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
+        draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
+
+
+    filename = f"{image_id}_app.png"
+    filepath = os.path.join(save_dir, filename)
+    img.save(filepath, optimize=True)
+
+    return f"http://10.0.2.2:8000/static/cards/{filename}"
+
+
+def generate_share_card_for_web(animal: str, image_id: str, top_k: List[dict], save_dir: str) -> str:
+    width, height = 600, 400
+    img = Image.new("RGB", (width, height), color=(255, 241, 224))  # 기존 연살구톤 배경
+    draw = ImageDraw.Draw(img)
+
+    font_path = os.path.join(BASE_DIR, "..", "..", "assets", "fonts", "NanumGothic-Bold.ttf")
+    try:
+        title_font = ImageFont.truetype(font_path, 28)
+        result_font = ImageFont.truetype(font_path, 36)
+        bar_font = ImageFont.truetype(font_path, 18)
+    except Exception:
+        title_font = result_font = bar_font = ImageFont.load_default()
+
+    draw.text((width/2, 40), "당신의 결과는", font=title_font, fill="black", anchor="mm")
+    draw.text((width/2, 90), f"{animal}상!!", font=result_font, fill="black", anchor="mm")
+
+    # bar 시각화
+    start_y = 200
+    bar_width = 300
+    bar_height = 20
+    gap = 50
+
+    for i, item in enumerate(top_k[:2]):
+        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        score = item['score']
+        bar_x = (width - bar_width) // 2
+        bar_y = start_y + i * gap
+
+        draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
+        draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
+        draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
+
+
+    filename = f"{image_id}_web.png"
+    filepath = os.path.join(save_dir, filename)
+    img.save(filepath, optimize=True)
+
+    return f"https://animalfaceapp-e67a4.web.app/static/cards/{filename}"

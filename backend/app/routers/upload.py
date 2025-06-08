@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 from app.utils.image_preprocess import preprocess_image
 from app.utils.inference import predict_animal_face
-from app.utils.response_format import format_response
 import logging
 from pprint import pprint
 import uuid
@@ -13,6 +12,8 @@ from app.utils.response_format import format_response, generate_share_card
 from pathlib import Path
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")
+from app.utils.response_format import generate_share_card_for_app, generate_share_card_for_web
+
 
 # 응답 데이터 구조 정의
 class AnimalScore(BaseModel):
@@ -61,7 +62,8 @@ async def upload_image(
         # 5. 공유 카드 이미지 생성
         main_animal = prediction[0]["animal"]
         share_card_url = generate_share_card(main_animal, image_id=image_id, top_k=prediction, save_dir=IMAGE_SAVE_DIR)
-
+        app_card_url = generate_share_card_for_app(main_animal, image_id=image_id, top_k=prediction, save_dir=IMAGE_SAVE_DIR)
+        web_card_url = generate_share_card_for_web(main_animal, image_id=image_id, top_k=prediction, save_dir=IMAGE_SAVE_DIR)
         # 6. 결과 JSON 저장
         result_data = {
             "main_result": prediction[0],
@@ -79,9 +81,8 @@ async def upload_image(
             main_result=prediction[0],
             top_k=prediction[:3],
             message=result_data["message"],
-            share_card_url=result_data["image_url"],
-            share_page_url=f"http://10.0.2.2:8000/share/{image_id}"
-            
+            share_card_url=app_card_url, 
+            share_page_url=f"http://10.0.2.2:8000/share/{image_id}" 
         )
     except ValueError as ve:
         logger.warning(f"입력 오류: {ve}")
