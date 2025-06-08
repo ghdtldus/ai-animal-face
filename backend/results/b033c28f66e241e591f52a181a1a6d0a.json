@@ -1,0 +1,18 @@
+{
+  "main_result": {
+    "animal": "squirrel",
+    "score": 0.75
+  },
+  "top_k": [
+    {
+      "animal": "squirrel",
+      "score": 0.75
+    },
+    {
+      "animal": "bear",
+      "score": 0.6999
+    }
+  ],
+  "message": "squirrel상! 당신은 squirrel상의 매력을 가지고 있어요!",
+  "image_url": "http://10.0.2.2:8000/static/cards/b033c28f66e241e591f52a181a1a6d0a.png"
+}

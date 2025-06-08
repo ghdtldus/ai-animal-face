@@ -5,8 +5,10 @@ import uuid
 from pathlib import Path
 
 # 공 유 카드 이미지 저장 디렉토리 및 URL
-IMAGE_SAVE_DIR = r"C:\Projects\ai-animal-face\firebase-hosting\public\static\cards"
-BASE_URL = "https://animalfaceapp-e67a4.web.app/static/cards"
+BASE_URL = "http://10.0.2.2:8000/static/cards" 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+IMAGE_SAVE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "cards"))
+
 # 메시지 템플릿
 MESSAGES = {
     "wolf": "늑대상! 강인하고 자유로운 영혼의 스타일이에요 🐺",
@@ -23,7 +25,7 @@ MESSAGES = {
 }
 
 # 공유 카드 이미지 생성 함수
-def generate_share_card(animal: str, image_id: str, top_k: List[dict]) -> str:
+def generate_share_card(animal: str, image_id: str, top_k: List[dict], save_dir: str) -> str:
     width, height = 600, 400
     img = Image.new("RGB", (width, height), color=(255, 241, 224))  # 연살구톤 배경
     draw = ImageDraw.Draw(img)
@@ -67,9 +69,9 @@ def generate_share_card(animal: str, image_id: str, top_k: List[dict]) -> str:
 
 
     # 파일 저장
-    os.makedirs(IMAGE_SAVE_DIR, exist_ok=True)
+    os.makedirs(save_dir, exist_ok=True)
     filename = f"{image_id}.png"
-    filepath = os.path.join(IMAGE_SAVE_DIR, filename)
+    filepath = os.path.join(save_dir, filename)
     img.save(filepath)
 
     return f"{BASE_URL}/{filename}"

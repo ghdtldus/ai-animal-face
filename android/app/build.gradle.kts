@@ -57,7 +57,7 @@ dependencies {
 
     // Compose Material (Material 3 + Material 보완)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.material:material:1.5.0")
+    implementation("androidx.compose.material:material")
 
     // Compose Navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")
@@ -70,11 +70,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-unit:1.5.0") // 일부 버전에서는 생략 가능
 
     // 이미지 로딩 및 업로드 관련
-    implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     // 테스트
     testImplementation(libs.junit)

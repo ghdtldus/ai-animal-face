@@ -1,11 +1,16 @@
 package com.example.android
 
 import android.os.Bundle
-import android.util.Log
+import android.os.Build
+import android.Manifest
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Scaffold
+import androidx.core.app.ActivityCompat
+import androidx.compose.material3.*
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.android.ui.theme.AndroidTheme
 import com.example.android.ui.screen.*
 import com.example.android.data.model.*
@@ -13,35 +18,25 @@ import com.google.gson.Gson
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import androidx.navigation.NavType
-import androidx.navigation.compose.*
-import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Android 13+ 권한 요청
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+                1001
+            )
+        }
+
         enableEdgeToEdge()
 
         setContent {
             val navController = rememberNavController()
-
-            // 딥링크 경로 파싱
-            val pathSegments = intent?.data?.pathSegments
-            val imageId = intent?.data?.pathSegments?.let { segments ->
-                if (segments.size >= 2 && segments[0] == "share") {
-                    segments[1].removeSuffix(".html")
-                } else ""
-            } ?: ""
-            Log.d("DeepLink", "🔥 딥링크 imageId: $imageId")
-
-            val imageUrl = "https://animalfaceapp-e67a4.web.app/share/$imageId.png"
-            Log.d("DeepLink", "🔥 이동할 URL: $imageUrl")
-
-            val startDestination = if (imageId.isNotEmpty()) {
-                "share_preview/${URLEncoder.encode(imageUrl, "UTF-8")}"
-            } else {
-                "home"
-            }
+            val startDestination = "home" // 항상 홈부터 시작
 
             AndroidTheme {
                 NavHost(navController = navController, startDestination = startDestination) {
@@ -59,6 +54,7 @@ class MainActivity : ComponentActivity() {
                             uploadMessage = parsed.uploadMessage,
                             topKResults = parsed.topKResults,
                             sharePageUrl = parsed.sharePageUrl,
+                            shareCardUrl = parsed.shareCardUrl,
                             uploadedImageUri = parsed.uploadedImageUri,
                             navController = navController,
                             onRetry = {

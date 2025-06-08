@@ -41,10 +41,10 @@ async def upload_image(
         print(f"🔥 image_id: {image_id}")
 
         # 2. 경로 설정
-        BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # backend/app 기준
+        BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # /app 기준
         STATIC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "firebase-hosting", "public", "static", "cards"))
+        IMAGE_SAVE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "cards"))
         RESULT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "results"))
-
         os.makedirs(STATIC_DIR, exist_ok=True)
         os.makedirs(RESULT_DIR, exist_ok=True)
 
@@ -60,15 +60,14 @@ async def upload_image(
 
         # 5. 공유 카드 이미지 생성
         main_animal = prediction[0]["animal"]
-        share_card_url = generate_share_card(main_animal, image_id=image_id, top_k=prediction)
-
+        share_card_url = generate_share_card(main_animal, image_id=image_id, top_k=prediction, save_dir=IMAGE_SAVE_DIR)
 
         # 6. 결과 JSON 저장
         result_data = {
             "main_result": prediction[0],
             "top_k": prediction[:3],
             "message": f"{main_animal}상! 당신은 {main_animal}상의 매력을 가지고 있어요!",
-            "image_url": f"https://animalfaceapp-e67a4.web.app/static/cards/{image_id}.png"
+            "image_url": f"http://10.0.2.2:8000/static/cards/{image_id}.png"
         }
 
         with open(os.path.join(RESULT_DIR, f"{image_id}.json"), "w", encoding="utf-8") as f:
@@ -81,7 +80,7 @@ async def upload_image(
             top_k=prediction[:3],
             message=result_data["message"],
             share_card_url=result_data["image_url"],
-            share_page_url=f"https://api.animalfaceapp.com/share/{image_id}"
+            share_page_url=f"http://10.0.2.2:8000/share/{image_id}"
             
         )
     except ValueError as ve:

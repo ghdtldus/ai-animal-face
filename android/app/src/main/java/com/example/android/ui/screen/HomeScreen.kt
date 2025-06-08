@@ -99,7 +99,10 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                 )
                 Log.d("JSON 인코딩", "최종 JSON 직전: ${Gson().toJson(resultBundle)}")
                 val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
-                navController.navigate("result/$encodedJson")
+                navController.navigate("result/$encodedJson"){
+                    popUpTo("home") { inclusive = false }
+                    launchSingleTop = true
+                }
             } else {
                 uploadResult = "업로드 실패"
                 uploadMessage = null
