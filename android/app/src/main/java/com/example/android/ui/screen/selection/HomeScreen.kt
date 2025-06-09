@@ -1,6 +1,7 @@
 package com.example.android.ui.screen.selection
 
 import android.Manifest
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -24,8 +25,11 @@ import com.example.android.utils.ImageUtils
 import com.example.android.utils.ResultStorage
 import com.example.android.utils.uploadImageToServer
 import com.example.android.data.model.AnimalScore
+import com.example.android.data.model.MainResult
+import com.example.android.data.model.OfflineModeManager
 import com.example.android.data.model.ResultBundle
 import com.example.android.data.model.ResultLog
+import com.example.android.model.LocalModelRunner
 import com.google.gson.Gson
 import java.io.File
 import java.io.IOException
@@ -45,6 +49,8 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
     var topKResults by remember { mutableStateOf<List<AnimalScore>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var selectedGender by remember { mutableStateOf<String?>(null) }
+    var isOffline by remember { mutableStateOf(OfflineModeManager.isOfflineModeEnabled(context)) }
+
 
     LaunchedEffect(Unit) {
         selectedImageUri = null
@@ -63,60 +69,95 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
         photoFile
     )
 
+    // 로컬 추론 함수
+    fun runLocalInference(context: Context, compressedFile: File, gender: String): ResultBundle? {
+        return LocalModelRunner.run(context, compressedFile, gender)
+    }
+
     fun upload(compressedFile: File) {
         if (selectedGender == null) {
             Toast.makeText(context, "성별을 선택해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
-        isLoading = true
-        uploadImageToServer(
-            compressedFile,
-            selectedGender!!,
-            onResult = { response ->
-                isLoading = false
-                if (response != null) {
-                    Log.d("SharePageURL", "받은 URL: ${response.share_page_url}")
-                    uploadResult = response.main_result.animal
-                    uploadMessage = response.message
-                    topKResults = response.top_k
 
-                    val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    val main = response.main_result
-                    ResultStorage.saveResult(
-                        context,
-                        ResultLog(
-                            animal = main.animal,
-                            score = main.score,
-                            date = today
-                        )
+        isLoading = true
+
+        if (isOffline) {
+            // 오프라인 모드: 로컬 추론 실행
+            val localResult = runLocalInference(context, compressedFile, selectedGender!!)
+            isLoading = false
+
+            if (localResult != null) {
+                val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+                ResultStorage.saveResult(
+                    context,
+                    ResultLog(
+                        animal = localResult.uploadResult,
+                        score = localResult.topKResults.firstOrNull()?.score ?: 0f,
+                        date = today
                     )
-                    Log.d("ResultBundle", "sharePageUrl 전달됨: ${response.share_page_url}")
-                    val resultBundle = ResultBundle(
-                        uploadResult = response.main_result.animal,
-                        uploadMessage = response.message,
-                        topKResults = response.top_k,
-                        shareCardUrl = response.share_card_url,
-                        uploadedImageUri = compressedFile.absolutePath,
-                        sharePageUrl = response.share_page_url
-                    )
-                    Log.d("JSON 인코딩", "최종 JSON 직전: ${Gson().toJson(resultBundle)}")
-                    val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
-                    navController.navigate("result/$encodedJson"){
-                        popUpTo("home") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                } else {
-                    uploadResult = "업로드 실패"
-                    uploadMessage = null
-                    topKResults = emptyList()
-                    Toast.makeText(context, "서버 업로드 실패", Toast.LENGTH_SHORT).show()
+                )
+
+                val encodedJson = URLEncoder.encode(Gson().toJson(localResult), "UTF-8")
+                navController.navigate("result/$encodedJson") {
+                    popUpTo("home") { inclusive = false }
+                    launchSingleTop = true
                 }
-            },
-            onError = { errorMessage ->
-                isLoading = false
-                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "로컬 추론 실패", Toast.LENGTH_SHORT).show()
             }
-        )
+        } else {
+            // 온라인 모드: 서버 업로드 실행
+            uploadImageToServer(
+                compressedFile,
+                selectedGender!!,
+                onResult = { response ->
+                    isLoading = false
+                    if (response != null) {
+                        Log.d("SharePageURL", "받은 URL: ${response.share_page_url}")
+                        uploadResult = response.main_result.animal
+                        uploadMessage = response.message
+                        topKResults = response.top_k
+
+                        val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                        val main = response.main_result
+
+                        ResultStorage.saveResult(
+                            context,
+                            ResultLog(
+                                animal = main.animal,
+                                score = main.score,
+                                date = today
+                            )
+                        )
+                        val resultBundle = ResultBundle(
+                            uploadResult = main.animal,
+                            uploadMessage = response.message,
+                            topKResults = response.top_k,
+                            shareCardUrl = response.share_card_url,
+                            uploadedImageUri = compressedFile.absolutePath,
+                            sharePageUrl = response.share_page_url
+                        )
+
+                        val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
+                        navController.navigate("result/$encodedJson") {
+                            popUpTo("home") { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        uploadResult = "업로드 실패"
+                        uploadMessage = null
+                        topKResults = emptyList()
+                        Toast.makeText(context, "서버 업로드 실패", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onError = { errorMessage ->
+                    isLoading = false
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -184,6 +225,14 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             contentDescription = "앱 로고",
             modifier = Modifier
                 .size(150.dp)
+        )
+
+        OfflineModeToggle(
+            isOffline = isOffline,
+            onToggle = { newValue ->
+                isOffline = newValue
+                OfflineModeManager.setOfflineModeEnabled(context, newValue)
+            }
         )
 
         Image(
@@ -264,5 +313,19 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     }
             )
         }
+    }
+}
+
+@Composable
+fun OfflineModeToggle(isOffline: Boolean, onToggle: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+    ) {
+        Text(text = "오프라인 모드", style = MaterialTheme.typography.bodyMedium)
+        Switch(checked = isOffline, onCheckedChange = onToggle)
     }
 }
