@@ -5,8 +5,10 @@ import uuid
 from pathlib import Path
 
 # 공 유 카드 이미지 저장 디렉토리 및 URL
-IMAGE_SAVE_DIR = r"C:\Projects\ai-animal-face\firebase-hosting\public\static\cards"
-BASE_URL = "https://animalfaceapp-e67a4.web.app/static/cards"
+BASE_URL = "http://10.0.2.2:8000/static/cards" 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+IMAGE_SAVE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "cards"))
+
 # 메시지 템플릿
 MESSAGES = {
     "wolf": "늑대상! 강인하고 자유로운 영혼의 스타일이에요 🐺",
@@ -23,34 +25,53 @@ MESSAGES = {
 }
 
 # 공유 카드 이미지 생성 함수
-def generate_share_card(animal: str) -> str:
-    # 이미지 기본 설정
-    width, height = 400, 200
-    img = Image.new("RGB", (width, height), color=(255, 255, 255))
+def generate_share_card(animal: str, image_id: str, top_k: List[dict], save_dir: str) -> str:
+    width, height = 600, 400
+    img = Image.new("RGB", (width, height), color=(255, 241, 224))  # 연살구톤 배경
     draw = ImageDraw.Draw(img)
 
     # 폰트 설정
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    font_path = os.path.join(BASE_DIR, "..", "..", "assets", "fonts", "NanumGothic-Bold.ttf")
     try:
-        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        font = ImageFont.truetype(font_path, 24)
+        title_font = ImageFont.truetype(font_path, 28)
+        result_font = ImageFont.truetype(font_path, 36)
+        message_font = ImageFont.truetype(font_path, 20)
+        bar_font = ImageFont.truetype(font_path, 18)
     except Exception:
-        font = ImageFont.load_default()
+        title_font = result_font = message_font = bar_font = ImageFont.load_default()
 
-    # 텍스트 작성
-    text = f"당신의 동물상은 {animal}상입니다!"
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
+    # 텍스트 렌더링
+    draw.text((width/2, 40), "당신의 결과는", font=title_font, fill="black", anchor="mm")
+    draw.text((width/2, 90), f"{animal}상!!", font=result_font, fill="black", anchor="mm")
 
-    # 중앙 정렬 위치 계산
-    x = (width - text_width) / 2
-    y = (height - text_height) / 2
-    draw.text((x, y), text, fill="black", font=font)
+    # 설명 메시지
+ 
+    message = MESSAGES.get(animal, f"{animal}상! 단정하고 따뜻한 인상을 주는 스타일이에요 💫")
+    draw.text((width/2, 140), message, font=message_font, fill="black", anchor="mm")
+
+    # top-2 유사도 막대그래프
+    start_y = 200
+    bar_width = 300
+    bar_height = 20
+    gap = 50
+
+    for i, item in enumerate(top_k[:2]):
+        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        score = item['score']
+        bar_x = (width - bar_width) // 2
+        bar_y = start_y + i * gap
+
+        draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
+        draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
+        draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
+
+
 
     # 파일 저장
-    os.makedirs(IMAGE_SAVE_DIR, exist_ok=True)
-    filename = f"{uuid.uuid4().hex}.png"
-    filepath = os.path.join(IMAGE_SAVE_DIR, filename)
+    os.makedirs(save_dir, exist_ok=True)
+    filename = f"{image_id}.png"
+    filepath = os.path.join(save_dir, filename)
     img.save(filepath)
 
     return f"{BASE_URL}/{filename}"
@@ -66,6 +87,86 @@ def format_response(prediction: List[dict], image_id: str) -> dict:
         "main_result": main,
         "top_k": prediction[:3],
         "message": message,
-        "share_card_url": f"https://animalfaceapp-e67a4.web.app/static/cards/{image_id}.png",
-        "share_page_url": f"https://animalfaceapp-e67a4.web.app/share/{image_id}.html"
+        "share_card_url": f"{BASE_URL}/{image_id}.png",
+        "share_page_url": f"https://api.animalfaceapp.com/share/{image_id}"
     }
+
+
+def generate_share_card_for_app(animal: str, image_id: str, top_k: List[dict], save_dir: str) -> str:
+    width, height = 600, 400
+    img = Image.new("RGB", (width, height), color=(230, 250, 250))  # 앱 전용 연하늘 배경
+    draw = ImageDraw.Draw(img)
+
+    font_path = os.path.join(BASE_DIR, "..", "..", "assets", "fonts", "NanumGothic-Bold.ttf")
+    try:
+        title_font = ImageFont.truetype(font_path, 28)
+        result_font = ImageFont.truetype(font_path, 36)
+        bar_font = ImageFont.truetype(font_path, 18)
+    except Exception:
+        title_font = result_font = bar_font = ImageFont.load_default()
+
+    draw.text((width/2, 40), "✨내 동물상 분석 결과✨", font=title_font, fill="black", anchor="mm")
+    draw.text((width/2, 90), f"결과는 {animal}상!", font=result_font, fill="black", anchor="mm")
+
+    # bar 시각화 
+    start_y = 200
+    bar_width = 300
+    bar_height = 20
+    gap = 50
+
+    for i, item in enumerate(top_k[:2]):
+        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        score = item['score']
+        bar_x = (width - bar_width) // 2
+        bar_y = start_y + i * gap
+
+        draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
+        draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
+        draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
+
+
+    filename = f"{image_id}_app.png"
+    filepath = os.path.join(save_dir, filename)
+    img.save(filepath, optimize=True)
+
+    return f"http://10.0.2.2:8000/static/cards/{filename}"
+
+
+def generate_share_card_for_web(animal: str, image_id: str, top_k: List[dict], save_dir: str) -> str:
+    width, height = 600, 400
+    img = Image.new("RGB", (width, height), color=(255, 241, 224))  # 기존 연살구톤 배경
+    draw = ImageDraw.Draw(img)
+
+    font_path = os.path.join(BASE_DIR, "..", "..", "assets", "fonts", "NanumGothic-Bold.ttf")
+    try:
+        title_font = ImageFont.truetype(font_path, 28)
+        result_font = ImageFont.truetype(font_path, 36)
+        bar_font = ImageFont.truetype(font_path, 18)
+    except Exception:
+        title_font = result_font = bar_font = ImageFont.load_default()
+
+    draw.text((width/2, 40), "당신의 결과는", font=title_font, fill="black", anchor="mm")
+    draw.text((width/2, 90), f"{animal}상!!", font=result_font, fill="black", anchor="mm")
+
+    # bar 시각화
+    start_y = 200
+    bar_width = 300
+    bar_height = 20
+    gap = 50
+
+    for i, item in enumerate(top_k[:2]):
+        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        score = item['score']
+        bar_x = (width - bar_width) // 2
+        bar_y = start_y + i * gap
+
+        draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
+        draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
+        draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
+
+
+    filename = f"{image_id}_web.png"
+    filepath = os.path.join(save_dir, filename)
+    img.save(filepath, optimize=True)
+
+    return f"https://animalfaceapp-e67a4.web.app/static/cards/{filename}"

@@ -1,0 +1,18 @@
+{
+  "main_result": {
+    "animal": "dog",
+    "score": 0.75
+  },
+  "top_k": [
+    {
+      "animal": "dog",
+      "score": 0.75
+    },
+    {
+      "animal": "turtle",
+      "score": 0.6994
+    }
+  ],
+  "message": "dog상! 당신은 dog상의 매력을 가지고 있어요!",
+  "image_url": "https://animalfaceapp-e67a4.web.app/static/cards/cb72fc5b9b374244bae775c6cbffdff1.png"
+}

@@ -7,5 +7,6 @@ data class ResultBundle(
     val uploadMessage: String?,
     val topKResults: List<AnimalScore>,
     val shareCardUrl: String?,
-    val uploadedImageUri: String?  
+    val uploadedImageUri: String?,
+    val sharePageUrl: String?
 )

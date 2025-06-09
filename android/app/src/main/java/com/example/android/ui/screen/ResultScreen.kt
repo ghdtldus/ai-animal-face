@@ -24,6 +24,22 @@ import androidx.compose.runtime.remember
 import com.example.android.utils.ImageUtils
 import com.example.android.utils.ImageUtils.uriToAccessibleFile
 import android.net.Uri
+import android.app.DownloadManager
+import android.content.Context
+import android.os.Environment
+import android.widget.Toast
+import android.provider.MediaStore
+import android.content.ContentValues
+import java.net.URL
+import android.app.Activity
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.os.Build
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -39,6 +55,7 @@ fun ResultScreen(
     uploadResult: String,
     uploadMessage: String?,
     topKResults: List<AnimalScore>,
+    sharePageUrl: String?,
     shareCardUrl: String?,
     navController: NavHostController,
     onRetry: () -> Unit,
@@ -46,6 +63,21 @@ fun ResultScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    Log.d("ShareCardURL", "공유 카드 URL: $shareCardUrl")
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES),
+                1001
+            )
+        }
+    }
 
     LaunchedEffect(uploadedImageUri) {
         uploadedImageUri?.let {
@@ -62,7 +94,8 @@ fun ResultScreen(
     val bitmap = remember(uploadedImageUri) {
         uploadedImageUri?.let { path ->
             try {
-                BitmapFactory.decodeFile(path)
+                val realPath = if (path.startsWith("file://")) Uri.parse(path).path else path
+                BitmapFactory.decodeFile(realPath)
             } catch (e: Exception) {
                 Log.e("🛑", "파일 디코딩 실패: ${e.message}")
                 null
@@ -120,7 +153,7 @@ fun ResultScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),  // 필요하면 padding 추가
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -202,6 +235,19 @@ fun ResultScreen(
                             context.startActivity(Intent.createChooser(shareIntent, "결과 공유하기"))
                         }
                 )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                shareCardUrl?.let { imageUrl ->
+                    Button(
+                        onClick = {
+                            saveImageToGallery(context, imageUrl)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("저장")
+                    }
+                }
             }
         }
     }
@@ -294,5 +340,80 @@ fun getEmoji(animal: String): String {
         "공룡상" -> "🦖"
         "뱀상" -> "🐍"
         else -> "🐾"
+    }
+}
+
+
+fun downloadImage(context: Context, imageUrl: String) {
+    try {
+        Toast.makeText(context, "이미지 저장을 시작했어요!", Toast.LENGTH_SHORT).show()
+        Log.d("ImageSave", "이미지 저장 요청 보냄: $imageUrl")
+
+        val filename = "animal_face_result_${System.currentTimeMillis()}.png"
+        val request = DownloadManager.Request(Uri.parse(imageUrl)).apply {
+            setTitle("동물상 결과 저장")
+            setDescription("이미지를 저장 중입니다.")
+            val filename = "animal_face_result_${System.currentTimeMillis()}.png"
+            setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, filename)
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+        }
+
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        downloadManager.enqueue(request)
+
+        Toast.makeText(context, "이미지 저장을 시작했어요!", Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+        Toast.makeText(context, "이미지 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+
+fun saveImageToGallery(context: Context, imageUrl: String) {
+    CoroutineScope(Dispatchers.IO).launch {
+        Log.d("ImageSave", "공유 카드 저장 URL: $imageUrl")
+        val contentResolver = context.contentResolver
+        val filename = "animal_face_result_${System.currentTimeMillis()}.png"
+        val imageCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+
+        val imageDetails = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/AnimalFaceApp")
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+
+        val imageUri = contentResolver.insert(imageCollection, imageDetails)
+
+        if (imageUri != null) {
+            try {
+                val outputStream = contentResolver.openOutputStream(imageUri)
+                val inputStream = URL(imageUrl).openStream()
+
+                inputStream.use { input ->
+                    outputStream?.use { output ->
+                        input.copyTo(output)
+                        output.flush()
+                    }
+                }
+
+                imageDetails.clear()
+                imageDetails.put(MediaStore.Images.Media.IS_PENDING, 0)
+                contentResolver.update(imageUri, imageDetails, null, null)
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "갤러리에 이미지가 저장되었습니다!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ImageSave", "저장 실패 예외", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "이미지 저장 실패 (URI 생성 실패)", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

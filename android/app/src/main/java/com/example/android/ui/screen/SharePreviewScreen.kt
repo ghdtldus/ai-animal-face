@@ -95,16 +95,15 @@ fun SharePreviewScreen(imageUrl: String, navController: NavController) {
 
         Button(
             onClick = {
-                navController.navigate("home") {
-                    popUpTo("home") { inclusive = false }
-                }
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.example.android"))
+                context.startActivity(intent)
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
             shape = RoundedCornerShape(50)
         ) {
-            Text("검사하기", fontSize = 18.sp)
+            Text("검사하러 가기", fontSize = 18.sp)
         }
 
     }

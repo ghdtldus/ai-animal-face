@@ -1,146 +1,91 @@
+#TTM을 사용하는 방식(Teachable Machine)
 import numpy as np 
 import tensorflow as tf
 from sklearn.metrics.pairwise import cosine_similarity
 
-# 평균 임베딩 로드 (딱 1번만 로드해서 계속 재사용)
-mean_embeddings = np.load("app/models/mean_embeddings.npy", allow_pickle=True).item()
+# TTM은 임베딩이 아니라 softmax score 반환함
+class_names = [
+    "bear", "snake", "cat", "dog", "wolf", "dinosaur",
+    "squirrel", "rabbit", "tiger", "turtle", "deer"
+]
 
-# TFLite 모델 초기화
+# 모델 경로 및 출력 인덱스도 수정
 interpreter = tf.lite.Interpreter(model_path="app/models/efficientnet.tflite")
 interpreter.allocate_tensors()
 input_index = interpreter.get_input_details()[0]['index']
-embedding_index = 173  # 임베딩 텐서 인덱스 (모델에 맞게 확인 필요)
+output_index = interpreter.get_output_details()[0]['index']
 
-# === 후처리용 상수 및 함수들 ===
-
-# 서로 같이 나오면 부자연스러운 동물 조합 (금지 조합)
+# 기존에 작성했던 inference.py의 필터 유지
 forbidden_pairs = {
-    ('cat', 'bear'),
-    ('cat', 'dinosaur'),
-    ('snake', 'bear'),
-    ('rabbit', 'bear'),
-    ('turtle', 'cat')
+    ('cat', 'bear'), ('cat', 'dinosaur'), ('snake', 'bear'),
+    ('rabbit', 'bear'), ('turtle', 'cat')
 }
-
-# 성별에 따라 우선순위에서 제외할 동물 집합
 male_preference = {"bear", "tiger", "wolf"}
 female_preference = {"rabbit", "cat", "deer"}
 
-# 금지 조합 필터링 함수
 def filter_forbidden_pairs(top_k_list):
-    """
-    top_k_list: 동물 이름 리스트 (유사도 높은 순)
-    이미 선택된 동물들과 forbidden_pairs에 포함되는 동물은 건너뜀
-    최대 2개까지만 선택
-    """
     result = []
     for animal in top_k_list:
-        # 이미 선택된 동물들과 금지 조합인지 체크
         if all((animal, other) not in forbidden_pairs and (other, animal) not in forbidden_pairs
                for other in result):
             result.append(animal)
-        if len(result) >= 2:  # 최대 2개까지만 선택
+        if len(result) >= 2:
             break
     return result
 
-# 성별에 따라 특정 동물 제외하는 필터 함수
-def gender_filter(sim_dict, gender):
-    """
-    sim_dict: {동물: 유사도} 딕셔너리
-    gender: 'male' 또는 'female' 또는 None
-    성별에 따라 해당 성별과 덜 어울리는 동물 제거
-    """
+def gender_filter(score_dict, gender):
     if gender == "male":
-        sim_dict = {k: v for k, v in sim_dict.items() if k not in female_preference}
+        return {k: v for k, v in score_dict.items() if k not in female_preference}
     elif gender == "female":
-        sim_dict = {k: v for k, v in sim_dict.items() if k not in male_preference}
-    return sim_dict
+        return {k: v for k, v in score_dict.items() if k not in male_preference}
+    return score_dict
 
-# 유사도 최대값을 max_percent로 제한하고 비율에 맞춰 전체 조정
-# 새로운 커스터마이징 함수
-def adjust_similarity(similarity_dict, max_percent=0.7, boost_delta=0.05):
-    """
-    similarity_dict: {동물: 유사도} 딕셔너리
-    max_percent: 유사도 최대 허용값 (0~1)
-    boost_delta: top1과 top2의 유사도가 너무 비슷할 경우 top1을 얼마나 더 강조할지
-    """
-    if not similarity_dict:
-        return similarity_dict
-
-    # 1. 전체 스케일 보정
-    max_value = max(similarity_dict.values())
-    if max_value > max_percent:
-        scale = max_percent / max_value
-        similarity_dict = {k: round(v * scale, 4) for k, v in similarity_dict.items()}
-
-    # 2. top1 vs top2 유사도 차이 강조
-    sorted_items = sorted(similarity_dict.items(), key=lambda x: x[1], reverse=True)
-    if len(sorted_items) >= 2:
-        top1_key, top1_val = sorted_items[0]
-        top2_key, top2_val = sorted_items[1]
-        diff = abs(top1_val - top2_val)
-
-        if diff < 0.03:  # 너무 비슷한 경우
-            similarity_dict[top1_key] = min(top1_val + boost_delta, 1.0)
-            similarity_dict[top2_key] = max(top2_val - boost_delta, 0.0)
-
-    return similarity_dict
-
-
-# ===============================
-
-# 메인 추론 함수
+# 메인 추론 함수 (출력 포맷은 기존과 동일한 형식으로 유지)
 def predict_animal_face(img_data, gender: str = None):
     try:
-        # 1. 입력 텐서 형식 변환 (NCHW -> NHWC)
+        # 1. 입력 텐서 변환
         if isinstance(img_data, np.ndarray):
             input_tensor = img_data
         else:
-            input_tensor = img_data.numpy()  # torch.Tensor인 경우 변환
+            input_tensor = img_data.numpy()
 
-        # 채널 위치가 두 번째인 경우 (N, C, H, W)
         if input_tensor.shape[1] == 3:
-            # NHWC로 변환 (N, H, W, C)
-            input_tensor = np.transpose(input_tensor, (0, 2, 3, 1))
+            input_tensor = np.transpose(input_tensor, (0, 2, 3, 1))  # NCHW → NHWC
 
         input_tensor = input_tensor.astype(np.float32)
+        if input_tensor.max() > 1.0:
+            input_tensor /= 255.0  # ✅ TTM은 0~1 범위
 
-        # 2. TFLite 모델에 입력 텐서 세팅 및 추론 실행
+        # 2. 추론
         interpreter.set_tensor(input_index, input_tensor)
         interpreter.invoke()
+        output = interpreter.get_tensor(output_index).squeeze()  # (11,)
 
-        # 3. 임베딩 벡터 추출
-        embedding = interpreter.get_tensor(embedding_index).reshape(-1)
+        # 3. 점수 딕셔너리 구성
+        score_dict = {cls: float(score) for cls, score in zip(class_names, output)}
 
-        # 4. 각 클래스 평균 임베딩과 cosine similarity 계산
-        sims = {
-            cls: cosine_similarity(
-                embedding.reshape(1, -1), mean_vec.reshape(1, -1)
-            )[0][0]
-            for cls, mean_vec in mean_embeddings.items()
-        }
+        # 4. 성별 필터링 적용
+        score_dict = gender_filter(score_dict, gender)
 
-        # 4-1. 성별 기반 필터링 적용 (성별이 지정된 경우)
-        sims = gender_filter(sims, gender)
-
-        # 4-2. 유사도 상한 조정 (최대 0.7)
-        sims = adjust_similarity(sims, max_percent=0.7)
-
-        # 5. 유사도 높은 상위 5개 추출 후 forbidden pairs 필터 및 최대 2개 제한
-        top_k = sorted(sims.items(), key=lambda x: x[1], reverse=True)[:5]
+        # 5. Top-5 중 금지조합 제거 후 최대 2개 선택
+        top_k = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)[:5]
         filtered_animals = filter_forbidden_pairs([x[0] for x in top_k])
+        filtered_scores = [score_dict[a] for a in filtered_animals]
 
-        # 6. 최종 결과 리스트 생성 (유사도 * 100하여 점수화)
+        # 6. Softmax 후 비율 계산 (안정적 확률 분포)
+        e_x = np.exp(filtered_scores - np.max(filtered_scores))
+        probs = e_x / e_x.sum()
+
+        # 7. 결과 포맷 (기존과 동일)
         results = []
-        for animal in filtered_animals:
-            score = round(sims.get(animal, 0), 4)
-            results.append({"animal": animal, "score": score})
+        for animal, p in zip(filtered_animals, probs):
+            results.append({
+                "animal": animal,
+                "score": round(p * 100, 1)
+            })
 
         return results
 
     except Exception as e:
         print(f"추론 실패: {e}")
-        # 실패 시 unknown 반환
-        return [
-            {"animal": "unknown", "score": 0.0}
-        ]
+        return [{"animal": "unknown", "score": 0.0}]
