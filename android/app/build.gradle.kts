@@ -79,7 +79,7 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.monitor)
     implementation(libs.core.ktx)
-    implementation(libs.litert.support.api)
+//    implementation(libs.litert.support.api)
 
     // 이미지 전처리
     implementation(libs.play.services.mlkit.face.detection)

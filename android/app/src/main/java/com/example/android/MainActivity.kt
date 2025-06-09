@@ -7,6 +7,12 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -41,42 +47,55 @@ class MainActivity : ComponentActivity() {
             val startDestination = "home"
 
             AndroidTheme {
-                NavHost(navController = navController, startDestination = startDestination) {
-                    composable("home") {
-                        HomeMain(navController = navController)
-                    }
-                    composable(
-                        "result/{resultJson}",
-                        arguments = listOf(navArgument("resultJson") { type = NavType.StringType })
-                    ) { backStackEntry ->
-                        val resultJson = backStackEntry.arguments?.getString("resultJson")
-                        val parsed = parseResultJson(resultJson)
-                        ResultScreen(
-                            uploadResult = parsed.uploadResult,
-                            uploadMessage = parsed.uploadMessage,
-                            topKResults = parsed.topKResults,
-                            sharePageUrl = parsed.sharePageUrl,
-                            shareCardUrl = parsed.shareCardUrl,
-                            uploadedImageUri = parsed.uploadedImageUri,
-                            navController = navController,
-                            onRetry = {
-                                navController.popBackStack("home", inclusive = false)
-                            }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFFFDE2CB),
+                                    Color(0xFFFFCB9D)
+                                )
+                            )
                         )
-                    }
-                    composable(
-                        "share_preview/{imageUrl}",
-                        arguments = listOf(navArgument("imageUrl") { type = NavType.StringType })
-                    ) { backStackEntry ->
-                        val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
-                        val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
-                        SharePreviewScreen(imageUrl = decodedUrl, navController = navController)
-                    }
-                    composable("home_screen") {
-                        HomeScreen(navController = navController)
-                    }
-                    composable("recent_results") {
-                        RecentResultScreen(navController = navController)
+                ){
+                    NavHost(navController = navController, startDestination = startDestination) {
+                        composable("home") {
+                            HomeMain(navController = navController)
+                        }
+                        composable(
+                            "result/{resultJson}",
+                            arguments = listOf(navArgument("resultJson") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val resultJson = backStackEntry.arguments?.getString("resultJson")
+                            val parsed = parseResultJson(resultJson)
+                            ResultScreen(
+                                uploadResult = parsed.uploadResult,
+                                uploadMessage = parsed.uploadMessage,
+                                topKResults = parsed.topKResults,
+                                sharePageUrl = parsed.sharePageUrl,
+                                shareCardUrl = parsed.shareCardUrl,
+                                uploadedImageUri = parsed.uploadedImageUri,
+                                navController = navController,
+                                onRetry = {
+                                    navController.popBackStack("home", inclusive = false)
+                                }
+                            )
+                        }
+                        composable(
+                            "share_preview/{imageUrl}",
+                            arguments = listOf(navArgument("imageUrl") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
+                            val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
+                            SharePreviewScreen(imageUrl = decodedUrl, navController = navController)
+                        }
+                        composable("home_screen") {
+                            HomeScreen(navController = navController)
+                        }
+                        composable("recent_results") {
+                            RecentResultScreen(navController = navController)
+                        }
                     }
                 }
             }
