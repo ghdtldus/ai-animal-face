@@ -264,16 +264,5 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     }
             )
         }
-
-
-//        selectedImageUri?.let { uri ->
-//            Image(
-//                painter = rememberAsyncImagePainter(uri),
-//                contentDescription = "선택된 이미지",
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(300.dp)
-//            )
-//        }
     }
 }
