@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -320,12 +321,35 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
 fun OfflineModeToggle(isOffline: Boolean, onToggle: (Boolean) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
     ) {
-        Text(text = "오프라인 모드", style = MaterialTheme.typography.bodyMedium)
-        Switch(checked = isOffline, onCheckedChange = onToggle)
+        Image(
+            painter = painterResource(id = R.drawable.lbmobile_mode),
+            contentDescription = "모바일 모드",
+            modifier = Modifier
+                .height(50.dp)
+                .width(130.dp)
+        )
+
+        Spacer(modifier = Modifier.width(20.dp))
+
+        CustomSwitch(isOffline = isOffline, onToggle = onToggle)
     }
+}
+
+@Composable
+fun CustomSwitch(isOffline: Boolean, onToggle: (Boolean) -> Unit) {
+    Switch(
+        checked = isOffline,
+        onCheckedChange = onToggle,
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = Color(0xFFFED2AC),
+            checkedTrackColor = Color(0xFF705438),
+            uncheckedThumbColor = Color(0xFF705438),
+            uncheckedTrackColor = Color(0xFFFED2AC)
+        )
+    )
 }
