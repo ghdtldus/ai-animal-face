@@ -49,6 +49,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import com.example.android.R
 import java.io.File
+import com.example.android.MainActivity
+
 
 @Composable
 fun ResultScreen(
@@ -249,6 +251,22 @@ fun ResultScreen(
                     }
                 }
             }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        val context = LocalContext.current
+
+        Button(
+            onClick = {
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Text("⬅ 홈으로 돌아가기")
         }
     }
 }

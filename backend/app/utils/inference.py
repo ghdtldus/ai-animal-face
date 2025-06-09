@@ -1,7 +1,7 @@
 #TTM을 사용하는 방식(Teachable Machine)
 import numpy as np 
 import tensorflow as tf
-from sklearn.metrics.pairwise import cosine_similarity
+# from sklearn.metrics.pairwise import cosine_similarity
 
 # TTM은 임베딩이 아니라 softmax score 반환함
 class_names = [
@@ -60,7 +60,7 @@ def predict_animal_face(img_data, gender: str = None):
         interpreter.set_tensor(input_index, input_tensor)
         interpreter.invoke()
         output = interpreter.get_tensor(output_index).squeeze()  # (11,)
-
+        print("TTM 모델 raw output:", output)
         # 3. 점수 딕셔너리 구성
         score_dict = {cls: float(score) for cls, score in zip(class_names, output)}
 

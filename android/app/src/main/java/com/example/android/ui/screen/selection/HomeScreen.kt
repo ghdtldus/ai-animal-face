@@ -132,6 +132,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                                 date = today
                             )
                         )
+                        Log.d("ResultBundle", "sharePageUrl 전달됨: ${response.share_page_url}")
                         val resultBundle = ResultBundle(
                             uploadResult = main.animal,
                             uploadMessage = response.message,
@@ -140,7 +141,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                             uploadedImageUri = compressedFile.absolutePath,
                             sharePageUrl = response.share_page_url
                         )
-
+                        Log.d("JSON 인코딩", "최종 JSON 직전: ${Gson().toJson(resultBundle)}")
                         val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
                         navController.navigate("result/$encodedJson") {
                             popUpTo("home") { inclusive = false }

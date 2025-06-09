@@ -1,0 +1,18 @@
+{
+  "main_result": {
+    "animal": "wolf",
+    "score": 58.1
+  },
+  "top_k": [
+    {
+      "animal": "wolf",
+      "score": 58.1
+    },
+    {
+      "animal": "squirrel",
+      "score": 41.9
+    }
+  ],
+  "message": "wolf상! 당신은 wolf상의 매력을 가지고 있어요!",
+  "image_url": "http://10.0.2.2:8000/static/cards/8941d044e89c4e96ab301b2425d3ddcd.png"
+}

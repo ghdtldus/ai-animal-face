@@ -57,7 +57,7 @@ def generate_share_card(animal: str, image_id: str, top_k: List[dict], save_dir:
     gap = 50
 
     for i, item in enumerate(top_k[:2]):
-        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        label = f"{item['animal']} {item['score']:.1f}%"
         score = item['score']
         bar_x = (width - bar_width) // 2
         bar_y = start_y + i * gap
@@ -115,7 +115,7 @@ def generate_share_card_for_app(animal: str, image_id: str, top_k: List[dict], s
     gap = 50
 
     for i, item in enumerate(top_k[:2]):
-        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        label = f"{item['animal']} {item['score']:.1f}%"
         score = item['score']
         bar_x = (width - bar_width) // 2
         bar_y = start_y + i * gap
@@ -155,7 +155,7 @@ def generate_share_card_for_web(animal: str, image_id: str, top_k: List[dict], s
     gap = 50
 
     for i, item in enumerate(top_k[:2]):
-        label = f"{item['animal']} {int(item['score'] * 100)}%"
+        label = f"{item['animal']} {item['score']:.1f}%"
         score = item['score']
         bar_x = (width - bar_width) // 2
         bar_y = start_y + i * gap

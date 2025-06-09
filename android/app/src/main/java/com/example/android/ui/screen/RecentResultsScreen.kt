@@ -61,17 +61,17 @@ fun RecentResultScreen(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                if (resultList.isEmpty()) {
-                    Text("기록은 30일 동안만 저장됩니다.")
-                } else {
-                    currentItems.forEachIndexed { index, result ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("${currentPage * itemsPerPage + index + 1}. ${result.animal} : ${String.format("%.1f", result.score * 100)}%")
+        if (resultList.isEmpty()) {
+            Text("기록은 30일 동안만 저장됩니다.")
+        } else {
+            resultList.forEachIndexed { index, result ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("${index + 1}. ${result.animal} : ${String.format("%.1f", result.score)}%")
 
                             Text(
                                 text = "🗑️",
