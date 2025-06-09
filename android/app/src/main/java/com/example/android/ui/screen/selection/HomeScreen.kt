@@ -3,6 +3,7 @@ package com.example.android.ui.screen.selection
 import android.Manifest
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +19,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.example.android.R
 import com.example.android.utils.ImageUtils
 import com.example.android.utils.ResultStorage
@@ -75,6 +75,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             onResult = { response ->
                 isLoading = false
                 if (response != null) {
+                    Log.d("SharePageURL", "받은 URL: ${response.share_page_url}")
                     uploadResult = response.main_result.animal
                     uploadMessage = response.message
                     topKResults = response.top_k
@@ -89,17 +90,26 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                             date = today
                         )
                     )
-
+                    Log.d("ResultBundle", "sharePageUrl 전달됨: ${response.share_page_url}")
                     val resultBundle = ResultBundle(
                         uploadResult = response.main_result.animal,
                         uploadMessage = response.message,
                         topKResults = response.top_k,
                         shareCardUrl = response.share_card_url,
-                        uploadedImageUri = compressedFile.absolutePath
+                        uploadedImageUri = compressedFile.absolutePath,
+                        sharePageUrl = response.share_page_url
                     )
-
+                    Log.d("JSON 인코딩", "최종 JSON 직전: ${Gson().toJson(resultBundle)}")
                     val encodedJson = URLEncoder.encode(Gson().toJson(resultBundle), "UTF-8")
-                    navController.navigate("result/$encodedJson")
+                    navController.navigate("result/$encodedJson"){
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                } else {
+                    uploadResult = "업로드 실패"
+                    uploadMessage = null
+                    topKResults = emptyList()
+                    Toast.makeText(context, "서버 업로드 실패", Toast.LENGTH_SHORT).show()
                 }
             },
             onError = { errorMessage ->
