@@ -84,8 +84,7 @@ dependencies {
     // 이미지 전처리
     implementation(libs.play.services.mlkit.face.detection)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-
-
+//    implementation(libs.litert.support.api)
 
 
     // 테스트
@@ -101,5 +100,8 @@ dependencies {
 
     // 모델 추론을 위해 TFLite 라이브러리 추가
     implementation("org.tensorflow:tensorflow-lite:2.13.0")
+
+    // ✅ TensorBuffer 사용을 위한 support 라이브러리 추가
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
 
 }
