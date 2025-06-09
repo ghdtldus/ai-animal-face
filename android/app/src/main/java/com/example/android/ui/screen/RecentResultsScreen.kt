@@ -1,14 +1,23 @@
 package com.example.android.ui.screen
 
 import android.content.Context
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.android.R
 import com.example.android.utils.ResultStorage
 import com.example.android.data.model.ResultLog
 
@@ -24,6 +33,25 @@ fun RecentResultScreen(navController: NavController) {
     val currentItems = resultList.drop(currentPage * itemsPerPage).take(itemsPerPage)
 
     Column(modifier = Modifier.padding(16.dp)) {
+
+        Image(
+            painter = painterResource(id = R.drawable.imglogo),
+            contentDescription = "앱 로고",
+            modifier = Modifier
+                .size(300.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .border(5.dp, Color(0xFF705438), RoundedCornerShape(12.dp))
+                .background(Color(0xFFFFF3E9)),
+            contentAlignment = Alignment.Center
+        ){
+
+        }
+
         Text("최근 판별 결과 확인하기", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(12.dp))
 

@@ -127,7 +127,7 @@ fun ResultScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(aspectRatio)
-                    .border(2.dp, Color(0xFF705438), RoundedCornerShape(12.dp))
+                    .border(5.dp, Color(0xFF705438), RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
