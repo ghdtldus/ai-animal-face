@@ -24,6 +24,14 @@ import androidx.compose.runtime.remember
 import com.example.android.utils.ImageUtils
 import com.example.android.utils.ImageUtils.uriToAccessibleFile
 import android.net.Uri
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import com.example.android.R
 import java.io.File
 
 @Composable
@@ -37,6 +45,7 @@ fun ResultScreen(
     uploadedImageUri: String?
 ) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(uploadedImageUri) {
         uploadedImageUri?.let {
@@ -64,82 +73,135 @@ fun ResultScreen(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 이미지 표시
-        bitmap?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = "업로드한 이미지",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp)
-            )
-        }
 
-        Text(
-            text = "나의 동물상은",
-            style = MaterialTheme.typography.labelLarge
+        Image(
+            painter = painterResource(id = R.drawable.imglogo),
+            contentDescription = "앱 로고",
+            modifier = Modifier
+                .size(150.dp)
         )
 
-        // 메시지 출력
-        uploadMessage?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+        // 이미지 표시
+        bitmap?.let {
+            val width = it.width
+            val height = it.height
+            val aspectRatio = width.toFloat() / height.toFloat()
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(aspectRatio)
+                    .border(2.dp, Color(0xFF705438), RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    bitmap = it.asImageBitmap(),
+                    contentDescription = "업로드한 이미지",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
 
-        // Top 2 혼합 바 시각화
-        if (topKResults.size >= 2) {
-            Text(
-                text = "예측 결과:",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
 
-            val first = topKResults[0]
-            val second = topKResults[1]
+        Spacer(modifier = Modifier.height(10.dp))
 
-            CombinedAnimalBar(first = first, second = second)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFFFF3E9)),
+            contentAlignment = Alignment.Center
+        ){
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),  // 필요하면 padding 추가
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.lbyour_result),
+                    contentDescription = "당신의 결과는",
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(150.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 메시지 출력
+                uploadMessage?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
+                // Top 2 혼합 바 시각화
+                if (topKResults.size >= 2) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val first = topKResults[0]
+                    val second = topKResults[1]
+
+                    CombinedAnimalBar(first = first, second = second)
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        Image(
+            painter = painterResource(id = R.drawable.lbcheck_your_animal),
+            contentDescription = "친구들의 동물상도 확인해봐!!",
+            modifier = Modifier
+                .height(50.dp)
+                .width(250.dp)
+        )
+
         // 버튼 영역
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = {
-                    navController.popBackStack("home_screen", inclusive = true)
-                    navController.navigate("home_screen")
-                },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("다시하기")
-            }
+            Image(
+                painter = painterResource(id = R.drawable.btrestart),
+                contentDescription = "다시하기",
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(150.dp)
+                    .clickable {
+                        navController.popBackStack("home_screen", inclusive = true)
+                        navController.navigate("home_screen")
+                    }
+            )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(24.dp))
 
             shareCardUrl?.let { url ->
-                Button(
-                    onClick = {
-                        val shareIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, url)
-                            type = "text/plain"
+                Image(
+                    painter = painterResource(id = R.drawable.btsharing),
+                    contentDescription = "공유",
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(150.dp)
+                        .clickable {
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, url)
+                                type = "text/plain"
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "결과 공유하기"))
                         }
-                        context.startActivity(Intent.createChooser(shareIntent, "결과 공유하기"))
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("공유")
-                }
+                )
             }
         }
     }
@@ -158,39 +220,37 @@ fun CombinedAnimalBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.medium)
-            .padding(16.dp)
     ) {
-        Text("Top 2 예측 결과", style = MaterialTheme.typography.titleMedium)
-
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 첫 번째 동물
         AnimalBarRow(
             emoji = getEmoji(first.animal),
             name = first.animal,
             percent = firstRatio,
-            barColor = MaterialTheme.colorScheme.primary
+            barColor = Color(0xFF7AD8F7),
+            backgroundColor = Color(0xFFC7F1FF)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 두 번째 동물
         AnimalBarRow(
             emoji = getEmoji(second.animal),
             name = second.animal,
             percent = secondRatio,
-            barColor = MaterialTheme.colorScheme.secondary
+            barColor = Color(0xFFFFA680),
+            backgroundColor = Color(0xFFFFD8C7)
         )
     }
 }
+
 
 @Composable
 fun AnimalBarRow(
     emoji: String,
     name: String,
     percent: Float,
-    barColor: Color
+    barColor: Color,
+    backgroundColor: Color
 ) {
     val percentLabel = "${(percent * 100).toInt()}%"
 
@@ -207,7 +267,7 @@ fun AnimalBarRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(10.dp)
-                .background(Color.LightGray.copy(alpha = 0.3f), shape = MaterialTheme.shapes.extraSmall)
+                .background(backgroundColor, shape = MaterialTheme.shapes.extraSmall)
         ) {
             Box(
                 modifier = Modifier
