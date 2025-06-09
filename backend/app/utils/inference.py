@@ -10,7 +10,7 @@ class_names = [
 ]
 
 # 모델 경로 및 출력 인덱스도 수정
-interpreter = tf.lite.Interpreter(model_path="app/models/efficientnet.tflite")
+interpreter = tf.lite.Interpreter(model_path="app/models/model_unquant.tflite")
 interpreter.allocate_tensors()
 input_index = interpreter.get_input_details()[0]['index']
 output_index = interpreter.get_output_details()[0]['index']

@@ -1,0 +1,18 @@
+{
+  "main_result": {
+    "animal": "tiger",
+    "score": 69.4
+  },
+  "top_k": [
+    {
+      "animal": "tiger",
+      "score": 69.4
+    },
+    {
+      "animal": "wolf",
+      "score": 30.6
+    }
+  ],
+  "message": "tiger상! 당신은 tiger상의 매력을 가지고 있어요!",
+  "image_url": "http://10.0.2.2:8000/static/cards/78bf7ef008d94aefb327a92945092559.png"
+}

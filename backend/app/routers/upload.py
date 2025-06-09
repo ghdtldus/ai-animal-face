@@ -2,7 +2,7 @@ from fastapi import APIRouter, File, UploadFile, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
-from app.utils.image_preprocess_embeding import preprocess_image
+from app.utils.image_preprocess import preprocess_image
 from app.utils.inference import predict_animal_face
 import logging
 from pprint import pprint
