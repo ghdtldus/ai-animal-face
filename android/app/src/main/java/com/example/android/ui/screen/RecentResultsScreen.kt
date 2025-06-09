@@ -32,86 +32,137 @@ fun RecentResultScreen(navController: NavController) {
     val totalPages = (resultList.size + itemsPerPage - 1) / itemsPerPage
     val currentItems = resultList.drop(currentPage * itemsPerPage).take(itemsPerPage)
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
         Image(
             painter = painterResource(id = R.drawable.imglogo),
             contentDescription = "앱 로고",
             modifier = Modifier
-                .size(300.dp)
+                .size(150.dp)
         )
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .border(5.dp, Color(0xFF705438), RoundedCornerShape(12.dp))
-                .background(Color(0xFFFFF3E9)),
+                .border(4.dp, Color(0xFF705438), RoundedCornerShape(12.dp))
+                .background(Color(0xFFFFF3E9))
+                .padding(16.dp),
             contentAlignment = Alignment.Center
-        ){
-
-        }
-
-        Text("최근 판별 결과 확인하기", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (resultList.isEmpty()) {
-            Text("기록은 30일 동안만 저장됩니다.")
-        } else {
-            currentItems.forEachIndexed { index, result ->
-                Row(
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Image(
+                    painter = painterResource(id = R.drawable.lblatest_result),
+                    contentDescription = "최근 판별 결과",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("${currentPage * itemsPerPage + index + 1}. ${result.animal} : ${String.format("%.1f", result.score * 100)}%")
+                        .align(Alignment.CenterHorizontally)
+                        .height(50.dp)
+                        .width(170.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(
-                        text = "🗑️",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .clickable {
-                                ResultStorage.deleteResult(context, result)
-                                resultList = ResultStorage.loadRecentResults(context)
-                                // 현재 페이지에 아이템이 하나도 안 남는다면 이전 페이지로 이동
-                                if (currentPage > 0 && currentPage * itemsPerPage >= resultList.size) {
-                                    currentPage--
-                                }
-                            }
-                    )
+                if (resultList.isEmpty()) {
+                    Text("기록은 30일 동안만 저장됩니다.")
+                } else {
+                    currentItems.forEachIndexed { index, result ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("${currentPage * itemsPerPage + index + 1}. ${result.animal} : ${String.format("%.1f", result.score * 100)}%")
+
+                            Text(
+                                text = "🗑️",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .padding(start = 12.dp)
+                                    .clickable {
+                                        ResultStorage.deleteResult(context, result)
+                                        resultList = ResultStorage.loadRecentResults(context)
+                                        if (currentPage > 0 && currentPage * itemsPerPage >= resultList.size) {
+                                            currentPage--
+                                        }
+                                    }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        PagingButton(
+                            text = "이전",
+                            enabled = currentPage > 0,
+                            onClick = { currentPage-- }
+                        )
+
+                        PageIndicator(currentPage, totalPages)
+
+                        PagingButton(
+                            text = "다음",
+                            enabled = currentPage < totalPages - 1,
+                            onClick = { currentPage++ }
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "⬅ 홈으로 돌아가기",
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .clickable { navController.popBackStack() },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Black
+                )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(
-                    onClick = { if (currentPage > 0) currentPage-- },
-                    enabled = currentPage > 0
-                ) {
-                    Text("이전")
-                }
-
-                Text("페이지 ${currentPage + 1} / $totalPages")
-
-                TextButton(
-                    onClick = { if (currentPage < totalPages - 1) currentPage++ },
-                    enabled = currentPage < totalPages - 1
-                ) {
-                    Text("다음")
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(onClick = { navController.popBackStack() }) {
-            Text("⬅ 홈으로 돌아가기")
         }
     }
 }
+
+@Composable
+fun PagingButton(
+    text: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .border(2.dp, Color(0xFF705438), RoundedCornerShape(16.dp))
+            .background(if (enabled) Color(0xFFFFE2C8) else Color(0xFFF0F0F0))
+            .clickable(enabled = enabled) { onClick() }
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (enabled) Color.Black else Color.Gray
+        )
+    }
+}
+
+@Composable
+fun PageIndicator(currentPage: Int, totalPages: Int) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .border(2.dp, Color(0xFF705438), RoundedCornerShape(16.dp))
+            .background(Color(0xFFFFE2C8))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = "${currentPage + 1} / $totalPages",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Black
+        )
+    }
+}
+
+
