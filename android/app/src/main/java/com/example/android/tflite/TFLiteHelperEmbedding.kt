@@ -31,15 +31,27 @@ class `TFLiteHelperEmbedding`(context: Context) {
     }
 
     // 주어진 임베딩 벡터에 대해 동물상 예측 결과를 반환
-    fun predictAnimalFace(embedding: FloatArray, gender: String? = null): List<Pair<String, Float>> {
-        // 클래스 평균 임베딩과 cosine similarity 계산
+    fun predictAnimalFace(embedding: FloatArray, gender: String? = null): List<Map<String, Any>> {
         val sims = meanEmbeddings.mapValues { cosineSimilarity(embedding, it.value) }.toMutableMap()
-        val filtered = genderFilter(sims, gender) // 성별 기반 필터링
-        val adjusted = adjustSimilarity(filtered) // 유사도 보정
+        val filtered = genderFilter(sims, gender)
+        val adjusted = adjustSimilarity(filtered)
         val sorted = adjusted.toList().sortedByDescending { it.second }.take(5).map { it.first }
-        val final = filterForbiddenPairs(sorted) // 금지 조합 필터링 적용
-        return final.map { it to String.format("%.4f", adjusted[it] ?: 0f).toFloat() }
+        val final = filterForbiddenPairs(sorted)
+
+        val selectedScores = final.map { it to (adjusted[it] ?: 0f) }
+
+        // 소프트맥스 적용
+        val maxLogit = selectedScores.maxOfOrNull { it.second } ?: 0f
+        val expScores = selectedScores.map { Math.exp((it.second - maxLogit).toDouble()) }
+        val sumExp = expScores.sum()
+        val probs = expScores.map { (it / sumExp).toFloat() }
+
+        // Map 형태로 반환
+        return selectedScores.zip(probs).map { (pair, prob) ->
+            mapOf("animal" to pair.first, "score" to String.format("%.1f", prob * 100).toFloat())
+        }
     }
+
 
     // Interpreter 리소스 해제 함수
     // 추론이 끝난 후 리소스 해제를 위해 Interpreter를 명시적으로 닫아주는 함수
