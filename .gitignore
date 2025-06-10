@@ -1,4 +1,15 @@
-# Python 기본
+# Android/IDE
+*.iml
+.gradle
+/local.properties
+/.idea/
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -29,9 +40,13 @@ models/
 log/
 logs/
 
-# 이미지
+# 이미지 및 데이터셋
 *.jpg
 *.jpeg
 *.png
 uploads/
 dataset/dataset_MultiLabel_cropped/
+
+# 백엔드 결과 및 공유 이미지 카드
+backend/results/
+backend/app/static/cards/
