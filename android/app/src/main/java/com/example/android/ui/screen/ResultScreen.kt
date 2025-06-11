@@ -239,19 +239,19 @@ fun ResultScreen(
         Spacer(modifier = Modifier.height(24.dp))
         val context = LocalContext.current
 
-        Button(
-            onClick = {
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                context.startActivity(intent)
-            },
+        Text(
+            text = "⬅ 홈으로 돌아가기",
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            Text("⬅ 홈으로 돌아가기")
-        }
+                .align(Alignment.CenterHorizontally)
+                .clickable {
+                    val intent = Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    context.startActivity(intent)
+                },
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Black
+        )
     }
 }
 
