@@ -275,7 +275,7 @@ fun ResultScreen(
                     }
                     context.startActivity(intent)
                 },
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 33.sp),
+            style = MaterialTheme.typography.bodyLarge,
             color = Color.Black 
         )
     }
