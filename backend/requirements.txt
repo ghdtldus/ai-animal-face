@@ -23,7 +23,7 @@ uvicorn==0.34.2
 
 # image_preprocess.py 작성 후 추가된 라이브러리
 python-multipart==0.0.20
-matplotlib==3.10.3
+matplotlib==3.9.4
 mediapipe==0.10.21
 torch==2.7.0
 torchvision==0.22.0
