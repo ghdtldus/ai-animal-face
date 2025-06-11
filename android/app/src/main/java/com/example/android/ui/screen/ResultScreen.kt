@@ -50,8 +50,13 @@ import androidx.compose.ui.res.painterResource
 import com.example.android.R
 import java.io.File
 import com.example.android.MainActivity
-
-
+import com.example.android.utils.getAnimalImageRes
+import com.example.android.utils.getKoreanAnimalName
+import androidx.compose.ui.text.font.FontWeight
+import com.example.android.utils.getAnimalMessage
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
+import com.example.android.ui.theme.HakgyoFont
 @Composable
 fun ResultScreen(
     uploadResult: String,
@@ -161,6 +166,17 @@ fun ResultScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val mainAnimal = topKResults.firstOrNull()?.animal ?: "default"
+                val koreanName = getKoreanAnimalName(mainAnimal)
+                val message = getAnimalMessage(mainAnimal)
+                Image(
+                    painter = painterResource(id = getAnimalImageRes(mainAnimal)),
+                    contentDescription = "$mainAnimal 아이콘",
+                    modifier = Modifier
+                        .size(130.dp)
+                        .padding(bottom = 2.dp)
+                )
+
                 Image(
                     painter = painterResource(id = R.drawable.lbyour_result),
                     contentDescription = "당신의 결과는",
@@ -168,17 +184,26 @@ fun ResultScreen(
                         .height(50.dp)
                         .width(150.dp)
                 )
+                Text(
+                    text = "$koreanName!!",
+                    fontFamily = HakgyoFont,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF705438)
+                )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // 메시지 출력
-                uploadMessage?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 17.sp,
+                        lineHeight = 24.sp
+                    ),
+                    color = Color(0xFF705438),
+                    textAlign = TextAlign.Center, 
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 // Top 2 혼합 바 시각화
                 if (topKResults.size >= 2) {
@@ -307,14 +332,14 @@ fun AnimalBarRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("$emoji $name", modifier = Modifier.weight(1f))
+            Text("$emoji ${getKoreanAnimalName(name)}", modifier = Modifier.weight(1f))
             Text(percentLabel)
         }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(10.dp)
+                .height(16.dp)
                 .background(backgroundColor, shape = MaterialTheme.shapes.extraSmall)
         ) {
             Box(
@@ -330,17 +355,17 @@ fun AnimalBarRow(
 // 동물 이름에 따라 이모지 매칭
 fun getEmoji(animal: String): String {
     return when (animal) {
-        "강아지상" -> "🐶"
-        "고양이상" -> "🐱"
-        "곰상" -> "🐻"
-        "토끼상" -> "🐰"
-        "거북이상" -> "🐢"
-        "사슴상" -> "🦌"
-        "늑대상" -> "🐺"
-        "호랑이상" -> "🐯"
-        "다람쥐상" -> "🐿️"
-        "공룡상" -> "🦖"
-        "뱀상" -> "🐍"
+        "dog" -> "🐶"
+        "cat" -> "🐱"
+        "bear" -> "🐻"
+        "rabbit" -> "🐰"
+        "turtle" -> "🐢"
+        "deer" -> "🦌"
+        "wolf" -> "🐺"
+        "tiger" -> "🐯"
+        "squirrel" -> "🐿️"
+        "dinosaur" -> "🦖"
+        "snake" -> "🐍"
         else -> "🐾"
     }
 }
