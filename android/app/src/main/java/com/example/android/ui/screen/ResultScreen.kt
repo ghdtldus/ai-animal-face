@@ -273,7 +273,8 @@ fun ResultScreen(
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     context.startActivity(intent)
-                },
+                }
+                .padding(bottom = 32.dp),
             style = MaterialTheme.typography.bodyLarge,
             color = Color.Black
         )
