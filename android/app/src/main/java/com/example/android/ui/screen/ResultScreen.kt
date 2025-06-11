@@ -57,6 +57,7 @@ import com.example.android.utils.getAnimalMessage
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import com.example.android.ui.theme.HakgyoFont
+
 @Composable
 fun ResultScreen(
     uploadResult: String,
@@ -262,7 +263,7 @@ fun ResultScreen(
             
         }
         Spacer(modifier = Modifier.height(24.dp))
-        val context = LocalContext.current
+    
 
         Text(
             text = "⬅ 홈으로 돌아가기",
@@ -274,8 +275,8 @@ fun ResultScreen(
                     }
                     context.startActivity(intent)
                 },
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Black
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 33.sp),
+            color = Color.Black 
         )
     }
 }

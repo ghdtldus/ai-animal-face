@@ -80,7 +80,7 @@ fun RecentResultScreen(navController: NavController) {
                                 modifier = Modifier
                                     .padding(start = 12.dp)
                                     .clickable {
-                                        ResultStorage.deleteResult(context, result)
+                                        ResultStorage.deleteResult(context, result.id)
                                         resultList = ResultStorage.loadRecentResults(context)
 
                                         if (currentPage > 0 && currentPage * itemsPerPage >= resultList.size) {
