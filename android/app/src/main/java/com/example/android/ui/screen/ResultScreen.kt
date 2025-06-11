@@ -221,36 +221,18 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.width(24.dp))
 
-            shareCardUrl?.let { url ->
-                Image(
-                    painter = painterResource(id = R.drawable.btsharing),
-                    contentDescription = "공유",
-                    modifier = Modifier
-                        .height(50.dp)
-                        .width(150.dp)
-                        .clickable {
-                            val shareIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, url)
-                                type = "text/plain"
-                            }
-                            context.startActivity(Intent.createChooser(shareIntent, "결과 공유하기"))
-                        }
-                )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                shareCardUrl?.let { imageUrl ->
-                    Button(
-                        onClick = {
-                            saveImageToGallery(context, imageUrl)
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("저장")
-                    }
+            
+            shareCardUrl?.let { imageUrl ->
+                Button(
+                    onClick = {
+                        saveImageToGallery(context, imageUrl)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("저장")
                 }
             }
+            
         }
         Spacer(modifier = Modifier.height(24.dp))
         val context = LocalContext.current

@@ -12,5 +12,7 @@ BASE_URL = (
     "http://10.0.2.2:8000/static/cards"
     if IS_LOCAL else "https://api.animalfaceapp.com/static/cards"
 )
-PROD_IMAGE_URL = "https://api.animalfaceapp.com/static/cards"
-PROD_SHARE_PAGE_URL = "https://api.animalfaceapp.com/share"
+
+# EC2 세팅 후 IP 확보되면
+# PROD_IMAGE_URL = "http://3.39.xx.xx:8000/static/cards"  이런식으로 바꾸기
+PROD_IMAGE_URL = BASE_URL

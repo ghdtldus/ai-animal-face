@@ -1,9 +1,7 @@
 from typing import List
 from PIL import Image, ImageDraw, ImageFont
 import os
-import uuid
-from pathlib import Path
-from app.config import IS_LOCAL, BASE_URL, PROD_IMAGE_URL, PROD_SHARE_PAGE_URL
+from app.config import IS_LOCAL, BASE_URL, PROD_IMAGE_URL  # 공유 페이지 URL 제거했음
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 IMAGE_SAVE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "cards"))
@@ -24,7 +22,7 @@ MESSAGES = {
 }
 
 
-# 최종 응답 포맷 함수
+# ✅ 공유 버튼 제거된 최종 응답 포맷
 def format_response(prediction: List[dict], image_id: str) -> dict:
     main = prediction[0]
     animal = main["animal"]
@@ -37,8 +35,7 @@ def format_response(prediction: List[dict], image_id: str) -> dict:
         "message": message,
         "share_card_url": (
             f"{BASE_URL}/{image_id}_web.png" if IS_LOCAL else f"{PROD_IMAGE_URL}/{image_id}_web.png"
-        ),
-        "share_page_url": f"{PROD_SHARE_PAGE_URL}/{image_id}"  # 운영 기준
+        )
     }
 
 
@@ -73,7 +70,6 @@ def generate_share_card_for_app(animal: str, image_id: str, top_k: List[dict], s
         draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
         draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
         draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
-
 
     filename = f"{image_id}_app.png"
     filepath = os.path.join(save_dir, filename)
@@ -113,7 +109,6 @@ def generate_share_card_for_web(animal: str, image_id: str, top_k: List[dict], s
         draw.text((bar_x - 10, bar_y + bar_height // 2), label, font=bar_font, fill="black", anchor="rm")
         draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill="#ddd")
         draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * score), bar_y + bar_height], fill="#6c63ff")
-
 
     filename = f"{image_id}_web.png"
     filepath = os.path.join(save_dir, filename)
