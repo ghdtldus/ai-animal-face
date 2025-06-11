@@ -61,17 +61,18 @@ fun RecentResultScreen(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-        if (resultList.isEmpty()) {
-            Text("기록은 30일 동안만 저장됩니다.")
-        } else {
-            resultList.forEachIndexed { index, result ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("${index + 1}. ${result.animal} : ${String.format("%.1f", result.score)}%")
+                if (resultList.isEmpty()) {
+                    Text("기록은 30일 동안만 저장됩니다.")
+                } else {
+                    currentItems.forEachIndexed { index, result ->
+                        val actualIndex = currentPage * itemsPerPage + index
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("${actualIndex + 1}. ${result.animal} : ${String.format("%.1f", result.score)}%")
 
                             Text(
                                 text = "🗑️",
@@ -81,6 +82,7 @@ fun RecentResultScreen(navController: NavController) {
                                     .clickable {
                                         ResultStorage.deleteResult(context, result)
                                         resultList = ResultStorage.loadRecentResults(context)
+
                                         if (currentPage > 0 && currentPage * itemsPerPage >= resultList.size) {
                                             currentPage--
                                         }
@@ -88,8 +90,7 @@ fun RecentResultScreen(navController: NavController) {
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
