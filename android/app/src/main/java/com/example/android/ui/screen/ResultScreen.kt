@@ -222,16 +222,18 @@ fun ResultScreen(
             Spacer(modifier = Modifier.width(24.dp))
 
             
-            shareCardUrl?.let { imageUrl ->
-                Button(
-                    onClick = {
-                        saveImageToGallery(context, imageUrl)
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("저장")
-                }
-            }
+            Image(
+                painter = painterResource(id = R.drawable.btsave),
+                contentDescription = "저장하기",
+                modifier = Modifier
+                    .height(53.dp)
+                    .width(165.dp)
+                    .clickable {
+                        shareCardUrl?.let { imageUrl ->
+                            saveImageToGallery(context, imageUrl)
+                        }
+                    }
+            )
             
         }
         Spacer(modifier = Modifier.height(24.dp))
