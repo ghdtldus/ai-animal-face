@@ -78,7 +78,7 @@ def generate_share_card_for_app(animal: str, image_id: str, top_k: list, save_di
     background_colors = ["#d8f1ff", "#ffe4d9"]
 
     # 막대 그래프
-    bar_y = 410
+    bar_y = 425
     bar_width = 320
     bar_height = 20
     gap = 50
