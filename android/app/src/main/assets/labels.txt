@@ -1,0 +1,11 @@
+0 bear
+1 snake
+2 cat
+3 dog
+4 wolf
+5 dinosaur
+6 squirrel
+7 rabbit
+8 tiger
+9 turtle
+10 deer

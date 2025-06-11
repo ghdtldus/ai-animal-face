@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">android</string>
+    <string name="lbselect_gender">성별을 선택해주세요</string>
+    <string name="lbcheck_your_animal">당신의 동물상은?</string>
+    <string name="lbselect_picture">사진을 선택해주세요</string>
+    <string name="lbyour_result">당신의 결과는?</string>
+</resources>
