@@ -229,13 +229,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                 .size(150.dp)
         )
 
-        OfflineModeToggle(
-            isOffline = isOffline,
-            onToggle = { newValue ->
-                isOffline = newValue
-                OfflineModeManager.setOfflineModeEnabled(context, newValue)
-            }
-        )
 
         Image(
             painter = painterResource(id = R.drawable.lbselect_gender),
@@ -314,32 +307,45 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                         }
                     }
             )
+
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                // "모바일 모드"
+                Text(
+                    text = "모바일 모드",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // 상태 텍스트
+                Text(
+                    text = if (isOffline) "ON" else "OFF",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (isOffline) Color(0xFF705438) else Color.Gray
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // 스위치
+                CustomSwitch(
+                    isOffline = isOffline,
+                    onToggle = {
+                        isOffline = it
+                        OfflineModeManager.setOfflineModeEnabled(context, it)
+                    }
+                )
+            }
         }
     }
 }
 
-@Composable
-fun OfflineModeToggle(isOffline: Boolean, onToggle: (Boolean) -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.lbmobile_mode),
-            contentDescription = "모바일 모드",
-            modifier = Modifier
-                .height(50.dp)
-                .width(130.dp)
-        )
-
-        Spacer(modifier = Modifier.width(20.dp))
-
-        CustomSwitch(isOffline = isOffline, onToggle = onToggle)
-    }
-}
 
 @Composable
 fun CustomSwitch(isOffline: Boolean, onToggle: (Boolean) -> Unit) {

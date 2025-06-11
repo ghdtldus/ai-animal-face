@@ -81,8 +81,8 @@ async def upload_image(
             main_result=prediction[0],
             top_k=prediction[:3],
             message=result_data["message"],
-            share_card_url=web_card_url, 
-            share_page_url=f"http://10.0.2.2:8000/share/{image_id}" 
+            share_card_url=app_card_url,  
+            share_page_url=f"http://10.0.2.2:8000/share/{image_id}"
         )
     except ValueError as ve:
         logger.warning(f"입력 오류: {ve}")
