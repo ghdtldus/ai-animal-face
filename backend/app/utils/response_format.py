@@ -2,12 +2,11 @@ from typing import List
 from PIL import Image, ImageDraw, ImageFont
 import os
 import uuid
-from app.config import IMAGE_SAVE_DIR, IS_LOCAL, BASE_URL, PROD_IMAGE_URL
+from app.config import IMAGE_SAVE_DIR, IS_LOCAL, BASE_URL, PROD_IMAGE_URL, BASE_DIR
 
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-FONT_PATH = os.path.abspath("C:/Projects/ai-animal-face/android/app/src/main/res/font/hakgyoansim_dunggeunmiso_b.otf")
-ANIMAL_IMAGES_DIR = "C:/Projects/ai-animal-face/android/app/src/main/res/drawable"
+FONT_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "android", "app", "src", "main", "res", "font", "hakgyoansim_dunggeunmiso_b.otf"))
+ANIMAL_IMAGES_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "android", "app", "src", "main", "res", "drawable"))
 
 ANIMAL_NAME_KR = {
     "bear": "곰상",

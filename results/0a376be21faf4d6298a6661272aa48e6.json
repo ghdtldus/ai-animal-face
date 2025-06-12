@@ -1,0 +1,17 @@
+{
+  "main_result": {
+    "animal": "cat",
+    "score": 73.1
+  },
+  "top_k": [
+    {
+      "animal": "cat",
+      "score": 73.1
+    },
+    {
+      "animal": "rabbit",
+      "score": 26.9
+    }
+  ],
+  "message": "cat상! 당신은 cat상의 매력을 가지고 있어요!"
+}
