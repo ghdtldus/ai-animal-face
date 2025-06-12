@@ -107,4 +107,12 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    // mediapipe 사용을 위한 라이브러리 추가
+    // 반드시 명시적으로 선언
+    implementation("com.google.mediapipe:tasks-vision:0.20230731")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
+    implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.3")
+
+
+
 }
