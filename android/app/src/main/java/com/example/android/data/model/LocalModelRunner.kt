@@ -132,7 +132,7 @@ object LocalModelRunner {
             val message = MESSAGES[main.animal] ?: "오프라인 추론 결과입니다."
 
             return ResultBundle(
-                uploadResult = main.animal,
+                uploadResult = main,
                 uploadMessage = message,
                 topKResults = topK,
                 shareCardUrl = "",

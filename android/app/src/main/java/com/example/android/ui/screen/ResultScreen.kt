@@ -57,10 +57,18 @@ import com.example.android.utils.getAnimalMessage
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import com.example.android.ui.theme.HakgyoFont
+import com.google.gson.Gson
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import java.io.IOException
 
 @Composable
 fun ResultScreen(
-    uploadResult: String,
+    uploadResult: AnimalScore,
     uploadMessage: String?,
     topKResults: List<AnimalScore>,
     sharePageUrl: String?,
@@ -256,7 +264,46 @@ fun ResultScreen(
                     .width(165.dp)
                     .clickable {
                         shareCardUrl?.let { imageUrl ->
-                            saveImageToGallery(context, imageUrl)
+                            // 1. imageId 추출
+                            val imageId = extractImageIdFromUrl(imageUrl)
+
+                            // 2. 서버로 결과 전송 (finalize)
+                            val resultMap = mapOf(
+                                "main_result" to mapOf(
+                                    "animal" to uploadResult.animal,
+                                    "score" to uploadResult.score
+                                ),
+                                "top_k" to topKResults
+                            )
+
+                            val resultJson = Gson().toJson(resultMap) 
+                            Log.d("resultJson", resultJson)  
+
+                            val requestBody = MultipartBody.Builder()
+                                .setType(MultipartBody.FORM)
+                                .addFormDataPart("results", resultJson)
+                                .addFormDataPart("image_id", imageId)
+                                .build()
+
+                            val request = Request.Builder()
+                                .url("http://10.0.2.2:8000/upload/finalize")
+                                .post(requestBody)
+                                .build()
+
+                            val client = OkHttpClient()
+                            client.newCall(request).enqueue(object : Callback {
+                                override fun onFailure(call: Call, e: IOException) {
+                                    Log.e("FinalizeUpload", "서버 전송 실패", e)
+                                }
+
+                                override fun onResponse(call: Call, response: Response) {
+                                    if (response.isSuccessful) {
+                                        Log.d("FinalizeUpload", "공유 이미지 생성 완료")
+                                        // 3. 이미지 저장
+                                        saveImageToGallery(context, imageUrl)
+                                    }
+                                }
+                            })
                         }
                     }
             )
@@ -445,4 +492,9 @@ fun saveImageToGallery(context: Context, imageUrl: String) {
             }
         }
     }
+}
+
+
+fun extractImageIdFromUrl(url: String): String {
+    return url.substringAfterLast("/").substringBefore("_")
 }

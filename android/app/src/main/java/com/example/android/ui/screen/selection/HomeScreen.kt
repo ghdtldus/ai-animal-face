@@ -94,7 +94,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                 ResultStorage.saveResult(
                     context,
                     ResultLog(
-                        animal = localResult.uploadResult,
+                        animal = localResult.uploadResult.animal,
                         score = localResult.topKResults.firstOrNull()?.score ?: 0f,
                         date = today
                     )
@@ -134,7 +134,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                         )
                         Log.d("ResultBundle", "sharePageUrl 전달됨: ${response.share_page_url}")
                         val resultBundle = ResultBundle(
-                            uploadResult = main.animal,
+                            uploadResult = main,
                             uploadMessage = response.message,
                             topKResults = response.top_k,
                             shareCardUrl = response.share_card_url,
