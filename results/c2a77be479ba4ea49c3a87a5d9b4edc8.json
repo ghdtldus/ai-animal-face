@@ -1,0 +1,17 @@
+{
+  "main_result": {
+    "animal": "wolf",
+    "score": 58.1
+  },
+  "top_k": [
+    {
+      "animal": "wolf",
+      "score": 58.1
+    },
+    {
+      "animal": "squirrel",
+      "score": 41.9
+    }
+  ],
+  "message": "wolf상! 당신은 wolf상의 매력을 가지고 있어요!"
+}

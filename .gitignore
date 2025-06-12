@@ -43,7 +43,6 @@ logs/
 # 이미지 및 데이터셋
 *.jpg
 *.jpeg
-*.png
 uploads/
 dataset/dataset_MultiLabel_cropped/
 

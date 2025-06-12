@@ -16,3 +16,8 @@ BASE_URL = (
 # EC2 세팅 후 IP 확보되면
 # PROD_IMAGE_URL = "http://3.39.xx.xx:8000/static/cards"  이런식으로 바꾸기
 PROD_IMAGE_URL = BASE_URL
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+IMAGE_SAVE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "cards"))
+RESULT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "results"))
+STATIC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static"))

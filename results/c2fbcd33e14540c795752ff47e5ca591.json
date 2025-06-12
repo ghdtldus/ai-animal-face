@@ -1,0 +1,17 @@
+{
+  "main_result": {
+    "animal": "snake",
+    "score": 60.5
+  },
+  "top_k": [
+    {
+      "animal": "snake",
+      "score": 60.5
+    },
+    {
+      "animal": "dog",
+      "score": 39.5
+    }
+  ],
+  "message": "snake상! 당신은 snake상의 매력을 가지고 있어요!"
+}

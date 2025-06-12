@@ -33,16 +33,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 딥링크 실행 -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="animalfaceapp-e67a4.web.app"
-                    android:pathPrefix="/share" />
-            </intent-filter>
         </activity>
 
         <!-- ResultActivity 등록 -->

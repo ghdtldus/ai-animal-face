@@ -82,14 +82,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        composable(
-                            "share_preview/{imageUrl}",
-                            arguments = listOf(navArgument("imageUrl") { type = NavType.StringType })
-                        ) { backStackEntry ->
-                            val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
-                            val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
-                            SharePreviewScreen(imageUrl = decodedUrl, navController = navController)
-                        }
                         composable("home_screen") {
                             HomeScreen(navController = navController)
                         }

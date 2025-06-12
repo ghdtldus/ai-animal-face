@@ -1,0 +1,17 @@
+{
+  "main_result": {
+    "animal": "deer",
+    "score": 52.8
+  },
+  "top_k": [
+    {
+      "animal": "deer",
+      "score": 52.8
+    },
+    {
+      "animal": "cat",
+      "score": 47.2
+    }
+  ],
+  "message": "deer상! 당신은 deer상의 매력을 가지고 있어요!"
+}
