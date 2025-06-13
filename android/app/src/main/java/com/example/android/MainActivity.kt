@@ -22,6 +22,7 @@ import com.example.android.data.model.*
 import com.example.android.ui.theme.AndroidTheme
 import com.example.android.ui.screen.main.HomeMain
 import com.example.android.ui.screen.selection.HomeScreen
+import com.example.android.utils.ImagePreprocessor
 import com.google.gson.Gson
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -31,14 +32,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        ImagePreprocessor.initialize(this)
+        
+        //앱 시작하자마자 권한 요청하여 이중으로 권한요청하는것을 막기위해 주석처리
         // Android 13+ 권한 요청
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
-                1001
-            )
-        }
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        //    ActivityCompat.requestPermissions(
+        //        this,
+        //        arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+        //        1001
+        //    )
+       // }
 
         enableEdgeToEdge()
 
@@ -81,14 +85,6 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack("home", inclusive = false)
                                 }
                             )
-                        }
-                        composable(
-                            "share_preview/{imageUrl}",
-                            arguments = listOf(navArgument("imageUrl") { type = NavType.StringType })
-                        ) { backStackEntry ->
-                            val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
-                            val decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8")
-                            SharePreviewScreen(imageUrl = decodedUrl, navController = navController)
                         }
                         composable("home_screen") {
                             HomeScreen(navController = navController)

@@ -1,3 +1,5 @@
+//LocalModelRunner.kt
+
 package com.example.android.model
 
 import android.content.Context
@@ -6,6 +8,7 @@ import android.graphics.BitmapFactory
 import com.example.android.data.model.AnimalScore
 import com.example.android.data.model.MainResult
 import com.example.android.data.model.ResultBundle
+import com.example.android.utils.ImagePreprocessor
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
@@ -73,27 +76,27 @@ object LocalModelRunner {
             loadModel(context)
 
             val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, IMAGE_SIZE, IMAGE_SIZE, true)
 
-            val inputBuffer = convertBitmapToByteBuffer(resizedBitmap)
+            // 얼굴 검출 및 전처리
+            val preprocessed = ImagePreprocessor.preprocess(bitmap)
             val outputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, NUM_CLASSES), org.tensorflow.lite.DataType.FLOAT32)
 
-            interpreter?.run(inputBuffer, outputBuffer.buffer.rewind())
+            interpreter?.run(preprocessed, outputBuffer.buffer.rewind())
 
             val scores = outputBuffer.floatArray
             val animalLabels = loadLabelsFromAsset(context)
-
             val scoreMap = animalLabels.zip(scores.toList()).toMap().toMutableMap()
 
+            // 성별 필터
             val malePreference = setOf("bear", "tiger", "wolf")
             val femalePreference = setOf("rabbit", "cat", "deer")
-
             val filteredScoreMap = when (gender.lowercase()) {
                 "male" -> scoreMap.filterKeys { it !in femalePreference }.toMutableMap()
                 "female" -> scoreMap.filterKeys { it !in malePreference }.toMutableMap()
                 else -> scoreMap
             }
 
+            // 금지 조합 필터
             val forbiddenPairs = setOf(
                 "cat" to "bear", "cat" to "dinosaur", "snake" to "bear",
                 "rabbit" to "bear", "turtle" to "cat"
@@ -107,16 +110,13 @@ object LocalModelRunner {
                     val conflict = result.any { existing ->
                         forbiddenPairs.contains(animal to existing) || forbiddenPairs.contains(existing to animal)
                     }
-                    if (!conflict) {
-                        result.add(animal)
-                    }
+                    if (!conflict) result.add(animal)
                     if (result.size >= 2) break
                 }
                 return result
             }
 
             val filteredAnimals = filterForbiddenPairs(top5)
-
             val filteredScores = filteredAnimals.map { filteredScoreMap[it] ?: 0f }
             val maxScore = filteredScores.maxOrNull() ?: 0f
             val expScores = filteredScores.map { Math.exp((it - maxScore).toDouble()) }
@@ -128,15 +128,14 @@ object LocalModelRunner {
             }
 
             val main = if (topK.isNotEmpty()) topK[0] else AnimalScore(animal = "unknown", score = 0f)
-
             val message = MESSAGES[main.animal] ?: "오프라인 추론 결과입니다."
 
             return ResultBundle(
-                uploadResult = main.animal,
+                uploadResult = main,
                 uploadMessage = message,
                 topKResults = topK,
-                shareCardUrl = "",
                 uploadedImageUri = imageFile.absolutePath,
+                shareCardUrl = "",
                 sharePageUrl = ""
             )
 
@@ -145,6 +144,7 @@ object LocalModelRunner {
             return null
         }
     }
+
 
     private fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
         val byteBuffer = ByteBuffer.allocateDirect(4 * IMAGE_SIZE * IMAGE_SIZE * 3)

@@ -5,15 +5,15 @@ from typing import List, Optional
 from app.utils.image_preprocess import preprocess_image
 from app.utils.inference import predict_animal_face
 import logging
-from pprint import pprint
 import uuid
 import os
 from app.utils.response_format import format_response
-from pathlib import Path
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")
-from app.utils.response_format import generate_share_card_for_app, generate_share_card_for_web
-
+from app.utils.response_format import generate_share_card_for_app
+import json
+from app.config import IMAGE_SAVE_DIR, RESULT_DIR
+from fastapi import HTTPException
 
 # 응답 데이터 구조 정의
 class AnimalScore(BaseModel):
@@ -25,10 +25,9 @@ class UploadResponse(BaseModel):
     top_k: List[AnimalScore]
     message: str
     share_card_url: Optional[str] = None
-    share_page_url: Optional[str] = None
 
 # /upload API
-@router.post("/upload", response_model=UploadResponse)
+@router.post("/", response_model=UploadResponse)
 async def upload_image(
     file: UploadFile = File(...),
     gender: str = Form(None)
@@ -40,13 +39,6 @@ async def upload_image(
         # 1. image_id 한 번만 생성
         image_id = uuid.uuid4().hex
         print(f"🔥 image_id: {image_id}")
-
-        # 2. 경로 설정
-        BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # /app 기준
-        STATIC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "firebase-hosting", "public", "static", "cards"))
-        IMAGE_SAVE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "cards"))
-        RESULT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "results"))
-        os.makedirs(STATIC_DIR, exist_ok=True)
         os.makedirs(RESULT_DIR, exist_ok=True)
 
         # 3. 원본 이미지 저장 (선택적. 현재는 필요 없음)
@@ -59,17 +51,15 @@ async def upload_image(
         preprocessed = preprocess_image(img_bytes)
         prediction = predict_animal_face(preprocessed, gender)
 
-        # 5. 공유 카드 이미지 생성
+        # 5. 저장 카드 이미지 생성
         main_animal = prediction[0]["animal"]
         app_card_url = generate_share_card_for_app(main_animal, image_id=image_id, top_k=prediction, save_dir=IMAGE_SAVE_DIR)
-        web_card_url = generate_share_card_for_web(main_animal, image_id=image_id, top_k=prediction, save_dir=IMAGE_SAVE_DIR)
-        
+
         # 6. 결과 JSON 저장
         result_data = {
             "main_result": prediction[0],
             "top_k": prediction[:3],
             "message": f"{main_animal}상! 당신은 {main_animal}상의 매력을 가지고 있어요!",
-            "image_url": web_card_url
         }
 
         with open(os.path.join(RESULT_DIR, f"{image_id}.json"), "w", encoding="utf-8") as f:
@@ -81,8 +71,7 @@ async def upload_image(
             main_result=prediction[0],
             top_k=prediction[:3],
             message=result_data["message"],
-            share_card_url=app_card_url,  
-            share_page_url=f"http://10.0.2.2:8000/share/{image_id}"
+            share_card_url=app_card_url
         )
     except ValueError as ve:
         logger.warning(f"입력 오류: {ve}")
@@ -107,3 +96,28 @@ async def upload_image(
                 "share_card_url": None
             }
         )
+
+@router.post("/finalize")
+async def finalize_result(
+    results: str = Form(...),
+    image_id: str = Form(...)
+):
+    try:
+        data = json.loads(results)
+        main_result = data.get("main_result")
+        top_k = data.get("top_k", [])
+
+        if not main_result or "animal" not in main_result:
+            raise ValueError("main_result가 올바르지 않음")
+
+        main_animal = main_result["animal"]
+
+        # 이미지 생성
+        generate_share_card_for_app(animal=main_animal, image_id=image_id, top_k=top_k)
+
+        return {"message": "Share card created successfully"}
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=f"요청 데이터 오류: {str(e)}")

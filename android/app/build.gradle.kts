@@ -15,6 +15,11 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+        }
+
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -79,12 +84,12 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.monitor)
     implementation(libs.core.ktx)
-//    implementation(libs.litert.support.api)
+    //implementation(libs.litert.support.api)
 
     // 이미지 전처리
     implementation(libs.play.services.mlkit.face.detection)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-//    implementation(libs.litert.support.api)
+    //implementation(libs.litert.support.api)
 
 
     // 테스트
@@ -101,7 +106,18 @@ dependencies {
     // 모델 추론을 위해 TFLite 라이브러리 추가
     implementation("org.tensorflow:tensorflow-lite:2.13.0")
 
-    // ✅ TensorBuffer 사용을 위한 support 라이브러리 추가
+    // TensorBuffer 사용을 위한 support 라이브러리 추가
     implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
+
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // mediapipe 사용을 위한 라이브러리 추가
+    // 반드시 명시적으로 선언
+    implementation("com.google.mediapipe:tasks-vision:0.20230731")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
+    implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.3")
+
+
 
 }

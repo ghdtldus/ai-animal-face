@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from app.routers.upload import router as upload_router
-from app.routers.share import router as share_router
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from app.config import STATIC_DIR
 
 app = FastAPI()
 
@@ -12,7 +12,7 @@ app = FastAPI()
 os.makedirs(os.path.join(os.path.dirname(__file__), "static/cards"), exist_ok=True)
 
 # 정적 파일 서빙 (FastAPI가 직접 static/cards/*.png 제공)
-app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # CORS 허용
 app.add_middleware(
@@ -24,9 +24,7 @@ app.add_middleware(
 )
 
 # 라우터 등록
-app.include_router(upload_router)
-app.include_router(share_router)
-
+app.include_router(upload_router, prefix="/upload")
 @app.get("/")
 def root():
     return {"message": "Animal Face Classifier API running."}
