@@ -1,76 +1,114 @@
+// ImagePreprocessor.kt
 package com.example.android.utils
-//오프라인에서의 이미지 전처리
+
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.RectF
-import androidx.core.graphics.createBitmap
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.face.FaceDetection
-import com.google.mlkit.vision.face.FaceDetectorOptions
-import kotlinx.coroutines.tasks.await
+import android.graphics.*
+import android.util.Log
+import androidx.core.graphics.scale
+import com.google.mediapipe.framework.image.BitmapImageBuilder
+import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.core.Delegate
+import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.google.mediapipe.tasks.vision.facedetector.FaceDetector
+import com.google.mediapipe.tasks.vision.facedetector.FaceDetectorResult
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.min
 
 object ImagePreprocessor {
+    private lateinit var faceDetector: FaceDetector
+    private const val TAG = "ImagePreprocessor"
 
-    // 얼굴 검출기 옵션 설정
-    private val options = FaceDetectorOptions.Builder()
-        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-        .enableTracking()
-        .build()
+    fun initialize(context: Context) {
+        Log.d(TAG, "initialize() 실행됨")
 
-    private val detector = FaceDetection.getClient(options)
+        val baseOptions = BaseOptions.builder()
+            .setModelAssetPath("blaze_face_short_range.tflite")
+            .setDelegate(Delegate.CPU)
+            .build()
 
-    suspend fun preprocess(context: Context, bitmap: Bitmap): ByteBuffer {
-        // 1. 얼굴 검출
-        val face = detectFace(bitmap) ?: throw Exception("얼굴이 감지되지 않았습니다. 정면 얼굴 사진을 다시 업로드해주세요.")
+        val options = FaceDetector.FaceDetectorOptions.builder()
+            .setBaseOptions(baseOptions)
+            .setMinDetectionConfidence(0.6f)
+            .setRunningMode(RunningMode.IMAGE)
+            .build()
 
-        // 2. 얼굴 영역 크롭
-        val faceBitmap = cropToSquareFace(bitmap, face.boundingBox)
+        try {
+            faceDetector = FaceDetector.createFromOptions(context, options)
+            Log.d(TAG, "FaceDetector 생성 성공")
+        } catch (e: Exception) {
+            Log.e(TAG, "FaceDetector 생성 실패: ${e.message}")
+        }
+    }
 
-        // 3. 224x224 리사이즈 + 정규화
-        val resized = Bitmap.createScaledBitmap(faceBitmap, 224, 224, true)
+    fun detectFace(bitmap: Bitmap): Bitmap? {
+        Log.d(TAG, "detectFace() 시작됨. 입력 이미지 크기: ${bitmap.width}x${bitmap.height}")
 
+        if (!::faceDetector.isInitialized) {
+            Log.e(TAG, "FaceDetector가 초기화되지 않았습니다.")
+            return null
+        }
+
+        val mpImage = BitmapImageBuilder(bitmap).build()
+        val result: FaceDetectorResult = faceDetector.detect(mpImage) ?: run {
+            Log.w(TAG, "FaceDetectorResult == null")
+            return null
+        }
+
+        Log.d(TAG, "FaceDetector 감지 수: ${result.detections().size}")
+
+        if (result.detections().isEmpty()) {
+            Log.w(TAG, "얼굴이 감지되지 않음")
+            return null
+        }
+
+        val bbox = result.detections().first().boundingBox()
+        Log.d(TAG, "감지된 얼굴 bbox: $bbox")
+
+        val left = bbox.left.toInt().coerceIn(0, bitmap.width)
+        val top = bbox.top.toInt().coerceIn(0, bitmap.height)
+        val right = bbox.right.toInt().coerceIn(0, bitmap.width)
+        val bottom = bbox.bottom.toInt().coerceIn(0, bitmap.height)
+
+        val width = right - left
+        val height = bottom - top
+
+        return try {
+            Bitmap.createBitmap(bitmap, left, top, width, height)
+        } catch (e: Exception) {
+            Log.e(TAG, "얼굴 자르기 실패: ${e.message}")
+            null
+        }
+    }
+
+    fun preprocess(bitmap: Bitmap): ByteBuffer {
+        val faceBitmap = detectFace(bitmap)
+            ?: throw Exception("얼굴이 감지되지 않았습니다. 정면 얼굴 사진을 다시 업로드해주세요.")
+
+        val squareCropped = cropToSquareFace(faceBitmap)
+        val resized = squareCropped.scale(224, 224)
         return convertBitmapToByteBuffer(resized)
     }
 
-    private suspend fun detectFace(bitmap: Bitmap): com.google.mlkit.vision.face.Face? {
-        val image = InputImage.fromBitmap(bitmap, 0)
-        val faces = detector.process(image).await()
-        return faces.firstOrNull()
+    private fun cropToSquareFace(bitmap: Bitmap): Bitmap {
+        val size = min(bitmap.width, bitmap.height)
+        val left = (bitmap.width - size) / 2
+        val top = (bitmap.height - size) / 2
+        return Bitmap.createBitmap(bitmap, left, top, size, size)
     }
 
-    private fun cropToSquareFace(bitmap: Bitmap, rect: android.graphics.Rect): Bitmap {
-        val cx = rect.exactCenterX()
-        val cy = rect.exactCenterY()
-        val size = maxOf(rect.width(), rect.height())
-        val left = (cx - size / 2).toInt().coerceAtLeast(0)
-        val top = (cy - size / 2).toInt().coerceAtLeast(0)
-        val right = (cx + size / 2).toInt().coerceAtMost(bitmap.width)
-        val bottom = (cy + size / 2).toInt().coerceAtMost(bitmap.height)
-        return Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
-    }
-
-    private fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
-        val byteBuffer = ByteBuffer.allocateDirect(1 * 224 * 224 * 3 * 4)
-        byteBuffer.order(ByteOrder.nativeOrder())
-
+    fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
+        val buffer = ByteBuffer.allocateDirect(1 * 224 * 224 * 3 * 4).order(ByteOrder.nativeOrder())
         val intValues = IntArray(224 * 224)
         bitmap.getPixels(intValues, 0, 224, 0, 0, 224, 224)
 
         for (pixel in intValues) {
-            val r = (pixel shr 16 and 0xFF) / 255.0f
-            val g = (pixel shr 8 and 0xFF) / 255.0f
-            val b = (pixel and 0xFF) / 255.0f
-            byteBuffer.putFloat(r)
-            byteBuffer.putFloat(g)
-            byteBuffer.putFloat(b)
+            buffer.putFloat((pixel shr 16 and 0xFF) / 255.0f)
+            buffer.putFloat((pixel shr 8 and 0xFF) / 255.0f)
+            buffer.putFloat((pixel and 0xFF) / 255.0f)
         }
-        byteBuffer.rewind()
-        return byteBuffer
+
+        buffer.rewind()
+        return buffer
     }
 }
