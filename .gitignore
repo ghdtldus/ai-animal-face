@@ -47,5 +47,5 @@ uploads/
 dataset/dataset_MultiLabel_cropped/
 
 # 백엔드 결과 및 공유 이미지 카드
-backend/results/
+/results/
 backend/app/static/cards/
