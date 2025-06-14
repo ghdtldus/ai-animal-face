@@ -19,7 +19,7 @@ STD = [0.25, 0.25, 0.25]       # 모델 입력 정규화 std
 
 IS_LOCAL = False
 BASE_URL = "https://animalfaceapp-e67a4.web.app"  # 클릭시 이동할 경로
-PROD_IMAGE_URL = "http://3.39.202.184:8000/static/share_cards"
+PROD_IMAGE_URL = "http://3.39.202.184:8000/static/cards"
 #PROD_IMAGE_URL = BASE_URL
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

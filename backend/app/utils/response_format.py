@@ -6,7 +6,7 @@ from app.config import IMAGE_SAVE_DIR, IS_LOCAL, BASE_URL, PROD_IMAGE_URL, BASE_
 
 
 FONT_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "android", "app", "src", "main", "res", "font", "hakgyoansim_dunggeunmiso_b.otf"))
-ANIMAL_IMAGES_DIR = os.path.join(BASE_DIR, "static", "animal_icons")
+ANIMAL_IMAGES_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "animal_icons"))
 
 ANIMAL_NAME_KR = {
     "bear": "곰상",
@@ -121,4 +121,4 @@ def generate_share_card_for_app(animal: str, image_id: str, top_k: list, save_di
     filepath = os.path.join(save_dir, filename)
     img.save(filepath, optimize=True)
 
-    return f"{BASE_URL}/{filename}"
+    return f"{PROD_IMAGE_URL}/{filename}"
