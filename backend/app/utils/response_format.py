@@ -1,25 +1,15 @@
 from typing import List
 from PIL import Image, ImageDraw, ImageFont
 import os
-import uuid
-from app.config import IMAGE_SAVE_DIR, IS_LOCAL, BASE_URL, PROD_IMAGE_URL, BASE_DIR
-
+from app.config import IMAGE_SAVE_DIR, PROD_IMAGE_URL, BASE_DIR
 
 FONT_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "android", "app", "src", "main", "res", "font", "hakgyoansim_dunggeunmiso_b.otf"))
-ANIMAL_IMAGES_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "static", "animal_icons"))
+ANIMAL_IMAGES_DIR = os.path.abspath(os.path.join(BASE_DIR, "static", "animal_icons"))
 
 ANIMAL_NAME_KR = {
-    "bear": "곰상",
-    "cat": "고양이상",
-    "dog": "강아지상",
-    "deer": "사슴상",
-    "rabbit": "토끼상",
-    "wolf": "늑대상",
-    "tiger": "호랑이상",
-    "snake": "뱀상",
-    "squirrel": "다람쥐상",
-    "turtle": "거북이상",
-    "dinosaur": "공룡상"
+    "bear": "곰상", "cat": "고양이상", "dog": "강아지상", "deer": "사슴상",
+    "rabbit": "토끼상", "wolf": "늑대상", "tiger": "호랑이상", "snake": "뱀상",
+    "squirrel": "다람쥐상", "turtle": "거북이상", "dinosaur": "공룡상"
 }
 
 MESSAGES = {
@@ -40,16 +30,13 @@ MESSAGES = {
 def format_response(prediction: List[dict], image_id: str) -> dict:
     main = prediction[0]
     animal = main["animal"]
-
     message = MESSAGES.get(animal, f"{animal}상! 단정하고 따뜻한 인상을 주는 스타일이에요 💫")
 
     return {
         "main_result": main,
         "top_k": prediction[:3],
         "message": message,
-        "share_card_url": (
-            f"{BASE_URL}/{image_id}_app.png" if IS_LOCAL else f"{PROD_IMAGE_URL}/{image_id}_app.png"
-        )
+        "share_card_url": f"{PROD_IMAGE_URL}/{image_id}_app.png"
     }
 
 
@@ -59,37 +46,31 @@ def generate_share_card_for_app(animal: str, image_id: str, top_k: list, save_di
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle([20, 20, width - 20, height - 20], radius=30, fill=(255, 255, 255), outline=(112, 84, 56), width=4)
 
-    # 폰트 설정
     try:
         title_font = ImageFont.truetype(FONT_PATH, 28)
         result_font = ImageFont.truetype(FONT_PATH, 36)
         bar_font = ImageFont.truetype(FONT_PATH, 18)
         message_font = ImageFont.truetype(FONT_PATH, 22)
     except Exception:
-        title_font = result_font = bar_font = ImageFont.load_default()
+        title_font = result_font = bar_font = message_font = ImageFont.load_default()
 
-    # 메시지 텍스트
     message = MESSAGES.get(animal, f"{animal}상이에요!")
 
-    # 텍스트
     draw.text((width // 2, 60), "내 동물상 분석 결과", font=title_font, fill=(112, 84, 56), anchor="mm")
     draw.text((width // 2, 110), f"{ANIMAL_NAME_KR.get(animal, animal + '상')}!!", font=result_font, fill="black", anchor="mm")
 
-    # 동물 이미지 삽입
     try:
         animal_img_path = os.path.join(ANIMAL_IMAGES_DIR, f"ic_{animal}.png")
         animal_img = Image.open(animal_img_path).convert("RGBA").resize((200, 200))
         img.paste(animal_img, (width//2 - 100, 150), animal_img)
     except Exception as e:
         print(f"❌ 동물 이미지 로드 실패: {e}")
-        
+
     draw.text((width // 2, 370), message, font=message_font, fill=(112, 84, 56), anchor="mm")
 
-    # 막대 그래프 색상
     color_map = ["#a5dff9", "#ffb5a7"]
     background_colors = ["#d8f1ff", "#ffe4d9"]
 
-    # 막대 그래프
     bar_y = 425
     bar_width = 320
     bar_height = 20
@@ -106,16 +87,12 @@ def generate_share_card_for_app(animal: str, image_id: str, top_k: list, save_di
         x1 = x0 + bar_width
         y1 = y0 + bar_height
 
-        # 동물명
         draw.text((x0, y0 - 25), f"{label}", font=bar_font, fill="black")
-        # 점수
         draw.text((x1, y0 - 25), percent_text, font=bar_font, fill="black", anchor="ra")
 
-        # 바 그리기
         draw.rounded_rectangle([x0, y0, x1, y1], radius=bar_radius, fill=background_colors[i])
         draw.rounded_rectangle([x0, y0, x0 + int(bar_width * score), y1], radius=bar_radius, fill=color_map[i])
 
-    # 저장
     os.makedirs(save_dir, exist_ok=True)
     filename = f"{image_id}_app.png"
     filepath = os.path.join(save_dir, filename)
