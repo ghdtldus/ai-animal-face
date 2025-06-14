@@ -286,7 +286,7 @@ fun ResultScreen(
                                 .build()
 
                             val request = Request.Builder()
-                                .url("http://10.0.2.2:8000/upload/finalize")
+                                .url("http://3.39.202.184:8000/upload/finalize")
                                 .post(requestBody)
                                 .build()
 
