@@ -18,7 +18,7 @@ STD = [0.25, 0.25, 0.25]       # 모델 입력 정규화 std
 # PROD_IMAGE_URL = "http://3.39.xx.xx:8000/static/cards"  이런식으로 바꾸기
 
 IS_LOCAL = False
-BASE_URL = "https://animalfaceapp-e67a4.web.app"  # 클릭시 이동할 경로
+BASE_URL = "http://3.39.202.184:8000/static/share_cards" # 클릭시 이동할 경로
 PROD_IMAGE_URL = "http://3.39.202.184:8000/static/cards"
 #PROD_IMAGE_URL = BASE_URL
 
